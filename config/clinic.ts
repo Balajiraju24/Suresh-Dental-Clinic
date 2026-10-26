@@ -290,7 +290,9 @@ export const clinicConfig: ClinicConfig = {
 
     appointmentBookingUrl: null,
     preferredContactMethod: "phone",
-    googleScriptEndpoint: process.env.NEXT_PUBLIC_GOOGLE_SCRIPT_URL || null,
+    googleScriptEndpoint:
+      process.env.NEXT_PUBLIC_GOOGLE_SCRIPT_URL ||
+      "https://script.google.com/macros/s/AKfycbx5s7_gSL4hOn-vGAISKTY5yjCWmKn3K-4T5Qte3PGrQFEuh59BzHt4iUrrxlvmHXw/exec",
     adminNotificationEmail: "balajiraju24@gmail.com"
   },
 
