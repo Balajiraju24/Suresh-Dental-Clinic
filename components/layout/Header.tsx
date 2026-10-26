@@ -56,7 +56,7 @@ export function Header() {
 
           <div className="flex items-center gap-4">
             <span className="text-slate-300 font-medium">
-              Mon – Sun: 10:00 AM – 1:00 PM | 4:00 PM – 8:00 PM (Provisional)
+              Mon – Sat: 10:00 AM – 12:00 PM | 4:30 PM – 8:30 PM (Sun Closed)
             </span>
           </div>
         </div>
@@ -183,13 +183,16 @@ export function Header() {
 
               <div className="bg-slate-50 dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200/60 dark:border-slate-800">
                 <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
-                  Provisional Consultation Hours
+                  Clinic Consultation Hours
                 </p>
                 <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                  Mon – Sun: 10:00 AM – 1:00 PM | 4:00 PM – 8:00 PM
+                  Mon – Sat: 10:00 AM – 12:00 PM | 4:30 PM – 8:30 PM
                 </p>
-                <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-1 font-medium">
-                  Verification Required: Please contact clinic to confirm availability before visiting.
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Sunday: Closed
+                </p>
+                <p className="text-[11px] text-teal-700 dark:text-teal-400 mt-1 font-medium">
+                  Verified via Google Business Profile
                 </p>
               </div>
 

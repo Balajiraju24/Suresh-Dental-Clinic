@@ -161,8 +161,8 @@ export const clinicConfig: ClinicConfig = {
       {
         id: "consultation-hours",
         field: "Clinic Operating Timings",
-        status: "pending_clinic_review",
-        notes: "Provisional hours: Mon – Sun (Morning: 10:00 AM – 1:00 PM | Evening: 4:00 PM – 8:00 PM). Pending confirmation by the clinic."
+        status: "verified",
+        notes: "Verified via Google Business Profile: Mon – Sat (Morning: 10:00 AM – 12:00 PM | Evening: 4:30 PM – 8:30 PM), Sunday: Closed."
       }
     ]
   },
@@ -200,15 +200,22 @@ export const clinicConfig: ClinicConfig = {
   hours: {
     regularSchedule: [
       {
-        days: "Monday – Sunday",
-        morningSlot: "10:00 AM – 01:00 PM",
-        eveningSlot: "04:00 PM – 08:00 PM",
-        fullDayDisplay: "Mon – Sun: 10:00 AM – 1:00 PM | 4:00 PM – 8:00 PM",
-        isVerified: false
+        days: "Monday – Saturday",
+        morningSlot: "10:00 AM – 12:00 PM",
+        eveningSlot: "04:30 PM – 08:30 PM",
+        fullDayDisplay: "Mon – Sat: 10:00 AM – 12:00 PM | 4:30 PM – 8:30 PM",
+        isVerified: true
+      },
+      {
+        days: "Sunday",
+        morningSlot: null,
+        eveningSlot: null,
+        fullDayDisplay: "Sunday: Closed",
+        isVerified: true
       }
     ],
     emergencyNote: "For urgent dental concerns, please contact the clinic in advance to ensure specialist availability.",
-    consultationNotice: "These are provisional consultation hours and are pending confirmation by the clinic. Please contact the clinic to confirm availability before visiting."
+    consultationNotice: "Consultation hours sourced from verified Google Business profile. Prior appointment scheduling is recommended before visiting."
   },
 
   doctor: {

@@ -241,23 +241,31 @@ export default function ContactPage() {
                 <div className="flex items-start gap-3">
                   <Clock className="w-5 h-5 text-sky-600 dark:text-sky-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div className="flex-1">
-                    <p className="font-semibold text-slate-900 dark:text-white text-sm">
-                      Clinic Operating Hours
-                    </p>
-                    <div className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <p className="font-semibold text-slate-900 dark:text-white text-sm">
+                        Clinic Operating Hours
+                      </p>
+                      <span className="text-[11px] font-semibold text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/70 border border-teal-200 dark:border-teal-800/80 px-2 py-0.5 rounded-full">
+                        Verified via Google
+                      </span>
+                    </div>
+                    <div className="text-xs text-slate-600 dark:text-slate-300 mt-2 space-y-1.5">
                       <p className="font-semibold text-slate-900 dark:text-slate-100">
-                        Days: Monday – Sunday
+                        Days: Monday – Saturday
                       </p>
                       <p>
-                        <span className="font-medium text-slate-700 dark:text-slate-300">Morning Consultation:</span> 10:00 AM – 1:00 PM
+                        <span className="font-medium text-slate-700 dark:text-slate-300">Morning Consultation:</span> 10:00 AM – 12:00 PM
                       </p>
                       <p>
-                        <span className="font-medium text-slate-700 dark:text-slate-300">Evening Consultation:</span> 4:00 PM – 8:00 PM
+                        <span className="font-medium text-slate-700 dark:text-slate-300">Evening Consultation:</span> 4:30 PM – 8:30 PM
+                      </p>
+                      <p className="text-rose-600 dark:text-rose-400 font-medium">
+                        Sunday: Closed
                       </p>
                     </div>
 
-                    <div className="mt-3 p-2.5 rounded-lg bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-[11px] text-amber-900 dark:text-amber-200 leading-snug">
-                      <span className="font-semibold">Verification Required:</span> These are provisional consultation hours and are pending confirmation by the clinic. Please contact the clinic to confirm availability before visiting.
+                    <div className="mt-3 p-2.5 rounded-lg bg-sky-50/90 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 text-[11px] text-sky-900 dark:text-sky-200 leading-snug">
+                      <span className="font-semibold">Notice:</span> Official hours sourced from the clinic&apos;s Google Business listing. Prior appointment scheduling is recommended before visiting to ensure specialist availability.
                     </div>
                   </div>
                 </div>
@@ -472,9 +480,9 @@ export default function ContactPage() {
                       }`}
                     >
                       <option value="">Select a preferred time window</option>
-                      <option value="Morning Consultation: 10:00 AM – 01:00 PM">Morning Consultation: 10:00 AM – 01:00 PM (Mon – Sun)</option>
-                      <option value="Evening Consultation: 04:00 PM – 08:00 PM">Evening Consultation: 04:00 PM – 08:00 PM (Mon – Sun)</option>
-                      <option value="Weekend Appointment (Saturday / Sunday)">Weekend Appointment (Saturday / Sunday)</option>
+                      <option value="Morning Consultation: 10:00 AM – 12:00 PM (Mon – Sat)">Morning Consultation: 10:00 AM – 12:00 PM (Mon – Sat)</option>
+                      <option value="Evening Consultation: 04:30 PM – 08:30 PM (Mon – Sat)">Evening Consultation: 04:30 PM – 08:30 PM (Mon – Sat)</option>
+                      <option value="Saturday Appointment (10:00 AM – 12:00 PM or 4:30 PM – 8:30 PM)">Saturday Consultation Slot</option>
                     </select>
                     {errors.preferredTiming && (
                       <p id="preferredTiming-error" className="text-xs text-rose-600 dark:text-rose-400 mt-1">
