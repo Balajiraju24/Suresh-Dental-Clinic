@@ -146,27 +146,4 @@ export function Footer() {
       {/* Verification & Legal Bottom Bar */}
       <div className="border-t border-slate-800/80 bg-slate-950/80 py-6 text-xs text-slate-500">
         <div className="clinic-container flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
-            <span>
-              &copy; {currentYear} {clinicConfig.displayName}. All rights reserved.
-            </span>
-            <span className="hidden sm:inline text-slate-700">|</span>
-            <Link
-              href="/privacy-policy"
-              className="text-slate-400 hover:text-slate-200 transition-colors underline"
-            >
-              Privacy Policy (Draft Healthcare Disclaimer)
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-1.5 text-amber-500/90 text-center text-[11px]">
-            <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
-            <span>
-              Complimentary preview build for clinic review. Content does not constitute individual medical diagnosis.
-            </span>
-          </div>
-        </div>
-      </div>
-    </footer>
-  );
-}
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center s

@@ -68,17 +68,4 @@ export function PatientInfoSection() {
                 <div className="pt-6 mt-4 border-t border-slate-100 dark:border-slate-800">
                   <Link
                     href={item.href}
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-sky-700 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300 transition-colors"
-                  >
-                    <span>Read Guide</span>
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
-                  </Link>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      </div>
-    </section>
-  );
-}
+                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-sky-700 dark:text-sky-400 hover:tex
