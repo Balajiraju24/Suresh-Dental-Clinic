@@ -81,4 +81,15 @@ export function IntroSection() {
             <div className="pt-2">
               <Link
                 href="/about"
-                className="inline-flex items-center gap-2 text-sky-700 dark:text-sky-400 hover:text-sky-
+                className="inline-flex items-center gap-2 text-sky-700 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300 font-semibold text-base group"
+              >
+                <span>Read More About Our Clinical Philosophy</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}

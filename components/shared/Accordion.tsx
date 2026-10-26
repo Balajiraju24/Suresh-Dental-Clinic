@@ -90,3 +90,14 @@ export function Accordion({
                       <p>{item.answer}</p>
                     ) : (
                       item.answer
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        );
+      })}
+    </div>
+  );
+}

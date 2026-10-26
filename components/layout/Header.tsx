@@ -172,4 +172,56 @@ export function Header() {
                     className={`px-4 py-3 rounded-xl text-base font-medium transition-colors ${
                       isActive
                         ? "bg-sky-50 dark:bg-sky-950/70 text-sky-800 dark:text-sky-300 font-semibold"
-                        : "text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark
+                        : "text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900"
+                    }`}
+                  >
+                    {item.title}
+                  </Link>
+                );
+              })}
+            </nav>
+
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-3">
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800">
+                <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Color Appearance
+                </span>
+                <ThemeToggle showLabel />
+              </div>
+
+              <div className="bg-slate-50 dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200/60 dark:border-slate-800">
+                <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  Clinic Consultation Hours
+                </p>
+                <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                  Mon – Sat: 10:00 AM – 12:00 PM | 4:30 PM – 8:30 PM
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Sunday: Closed
+                </p>
+                <p className="text-[11px] text-teal-700 dark:text-teal-400 mt-1 font-medium">
+                  Verified via Google Business Profile
+                </p>
+              </div>
+
+              <a
+                href={`tel:${clinicConfig.contact.phoneNumber}`}
+                className="w-full text-center py-2.5 px-4 rounded-xl font-semibold text-xs text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 flex items-center justify-center gap-2"
+              >
+                <Phone className="w-4 h-4" aria-hidden="true" />
+                <span>Call Clinic: {clinicConfig.contact.displayPhone}</span>
+              </a>
+
+              <Link
+                href="/contact#appointment-form"
+                className="w-full text-center py-3 px-4 rounded-xl font-semibold text-sm text-white bg-sky-700 hover:bg-sky-800 shadow"
+              >
+                Request an Appointment
+              </Link>
+            </div>
+          </div>
+        )}
+      </header>
+    </>
+  );
+}

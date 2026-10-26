@@ -64,4 +64,18 @@ export function WhyChooseUs() {
                   <div className={`w-12 h-12 rounded-xl ${item.colorClass} flex items-center justify-center mb-5`}>
                     <Icon className="w-6 h-6" aria-hidden="true" />
                   </div>
-                  <h3 className="text-lg font-bold text-sla
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2.5">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                    {item.description}
+                  </p>
+                </div>
+              </Card>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}

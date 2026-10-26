@@ -74,4 +74,21 @@ export function VerificationBanner() {
                       className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${
                         item.status === "verified"
                           ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300"
-                          : "bg-amber-100 dark:bg-amber-950 text-
+                          : "bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300"
+                      }`}
+                    >
+                      {item.status === "verified" ? "Verified" : "Verification Required"}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1 leading-snug">
+                    {item.notes}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </aside>
+  );
+}
