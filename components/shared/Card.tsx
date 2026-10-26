@@ -28,4 +28,10 @@ export function Card({
       className={`bg-white dark:bg-slate-900/90 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm ${
         hoverEffect
           ? "transition-all duration-300 hover:shadow-md dark:hover:shadow-slate-950/60 hover:border-slate-300 dark:hover:border-slate-700 hover:-translate-y-0.5"
-   
+          : ""
+      } ${paddingStyles[padding]} ${className}`}
+    >
+      {children}
+    </div>
+  );
+}
