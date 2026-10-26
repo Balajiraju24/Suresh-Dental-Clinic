@@ -52,7 +52,7 @@ export interface ClinicConfig {
     isPhoneVerified: boolean;
     
     whatsappNumber: string | null; // E.164 format without spaces, e.g. "+91..."
-    displayWhatsapp: string;
+    displayWhatsapp: string | null;
     isWhatsappVerified: boolean;
     
     emailAddress: string | null;
@@ -116,17 +116,17 @@ export const clinicConfig: ClinicConfig = {
 
   verification: {
     isPreviewMode: true,
-    clinicNameVerified: false,
-    locationVerified: false,
-    contactNumbersVerified: false,
+    clinicNameVerified: true,
+    locationVerified: true,
+    contactNumbersVerified: true,
     doctorBioVerified: false,
     registrationVerified: false,
     checklist: [
       {
         id: "clinic-name",
         field: "Official Clinic Name",
-        status: "pending_clinic_review",
-        notes: "Currently using initial specification: 'Dr. R. Suresh MDS, PhD, DSc Dental Clinic and Implant Centre'."
+        status: "verified",
+        notes: "Confirmed: 'Dr. R. Suresh MDS, PhD, DSc Dental Clinic and Implant Centre'."
       },
       {
         id: "exact-address",
@@ -137,14 +137,14 @@ export const clinicConfig: ClinicConfig = {
       {
         id: "contact-phone",
         field: "Primary Telephone / Mobile",
-        status: "placeholder_used",
-        notes: "No working phone number provided. Interactive calling disabled until clinic provides official contact line."
+        status: "verified",
+        notes: "Confirmed clinic telephone line: +91 75987 65787."
       },
       {
         id: "whatsapp-enquiry",
         field: "WhatsApp Consultation Line",
-        status: "placeholder_used",
-        notes: "WhatsApp direct chat link pending clinic mobile confirmation."
+        status: "verified",
+        notes: "Not required for now (per clinic preference)."
       },
       {
         id: "doctor-registration",
@@ -155,8 +155,8 @@ export const clinicConfig: ClinicConfig = {
       {
         id: "doctor-portrait",
         field: "Official Doctor Portrait Photograph",
-        status: "placeholder_used",
-        notes: "Dignified clinical placeholder avatar in use; to be replaced with high-resolution clinic headshot upon receipt."
+        status: "pending_clinic_review",
+        notes: "Can be uploaded directly from Google Maps clinic photos. Dignified clinical placeholder avatar in use."
       },
       {
         id: "consultation-hours",
@@ -181,12 +181,12 @@ export const clinicConfig: ClinicConfig = {
   },
 
   contact: {
-    phoneNumber: null, // Explicit null to avoid fake numbers
-    displayPhone: "Contact details pending clinic confirmation",
-    isPhoneVerified: false,
+    phoneNumber: "+91 75987 65787",
+    displayPhone: "+91 75987 65787",
+    isPhoneVerified: true,
 
-    whatsappNumber: null, // Explicit null
-    displayWhatsapp: "WhatsApp line pending verification",
+    whatsappNumber: null,
+    displayWhatsapp: null,
     isWhatsappVerified: false,
 
     emailAddress: null,
@@ -194,7 +194,7 @@ export const clinicConfig: ClinicConfig = {
     isEmailVerified: false,
 
     appointmentBookingUrl: null,
-    preferredContactMethod: "form"
+    preferredContactMethod: "phone"
   },
 
   hours: {

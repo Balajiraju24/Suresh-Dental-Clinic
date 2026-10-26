@@ -196,42 +196,16 @@ export default function ContactPage() {
                 <div className="flex items-start gap-3 text-slate-700 dark:text-slate-300">
                   <Phone className="w-5 h-5 text-sky-600 dark:text-sky-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">Telephone Line</p>
-                    {contact.isPhoneVerified && contact.phoneNumber ? (
-                      <a
-                        href={`tel:${contact.phoneNumber}`}
-                        className="text-sky-700 dark:text-sky-400 hover:underline font-medium"
-                      >
-                        {contact.phoneNumber}
-                      </a>
-                    ) : (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 italic mt-0.5">
-                        Phone line verification in progress (disabled in preview)
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                {/* WhatsApp */}
-                <div className="flex items-start gap-3 text-slate-700 dark:text-slate-300">
-                  <MessageSquare className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">WhatsApp Consultation</p>
-                    {contact.isWhatsappVerified && contact.whatsappNumber ? (
-                      <a
-                        href={`https://wa.me/${contact.whatsappNumber}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-emerald-700 dark:text-emerald-400 hover:underline font-medium inline-flex items-center gap-1"
-                      >
-                        <span>Chat via WhatsApp</span>
-                        <ExternalLink className="w-3 h-3" aria-hidden="true" />
-                      </a>
-                    ) : (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 italic mt-0.5">
-                        WhatsApp consultation line pending clinic confirmation
-                      </p>
-                    )}
+                    <p className="font-semibold text-slate-900 dark:text-white">Telephone / Mobile</p>
+                    <a
+                      href={`tel:${contact.phoneNumber}`}
+                      className="text-sky-700 dark:text-sky-400 hover:underline font-semibold text-base block mt-0.5"
+                    >
+                      {contact.phoneNumber}
+                    </a>
+                    <span className="text-[11px] text-teal-700 dark:text-teal-400 font-medium">
+                      Confirmed Primary Consultation Line
+                    </span>
                   </div>
                 </div>
 
@@ -440,8 +414,7 @@ export default function ContactPage() {
                         }
                         className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors"
                       >
-                        <option value="phone">Telephone Call</option>
-                        <option value="whatsapp">WhatsApp Message</option>
+                        <option value="phone">Telephone Call ({contact.phoneNumber})</option>
                         <option value="email">Email</option>
                       </select>
                     </div>

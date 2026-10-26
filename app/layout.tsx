@@ -88,6 +88,7 @@ export default function RootLayout({
     alternateName: clinicConfig.displayName,
     description: clinicConfig.description,
     url: "https://sureshdental.clinic",
+    telephone: clinicConfig.contact.phoneNumber || undefined,
     address: {
       "@type": "PostalAddress",
       streetAddress: clinicConfig.location.streetAddress || undefined,

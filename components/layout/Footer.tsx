@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { MapPin, Clock, Shield, AlertTriangle, ArrowRight } from "lucide-react";
+import { MapPin, Clock, Shield, AlertTriangle, ArrowRight, Phone } from "lucide-react";
 import { clinicConfig } from "@/config/clinic";
 import { mainNavItems, footerServiceLinks, footerPatientLinks } from "@/config/navigation";
 
@@ -118,6 +118,16 @@ export function Footer() {
                     Verified Google Business Profile
                   </p>
                 </div>
+              </div>
+
+              <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80">
+                <Phone className="w-4 h-4 text-emerald-400 flex-shrink-0" aria-hidden="true" />
+                <a
+                  href={`tel:${clinicConfig.contact.phoneNumber}`}
+                  className="text-slate-300 hover:text-white font-medium hover:underline text-xs"
+                >
+                  {clinicConfig.contact.displayPhone}
+                </a>
               </div>
             </div>
 

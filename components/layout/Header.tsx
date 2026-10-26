@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X, Calendar, MapPin, Shield } from "lucide-react";
+import { Menu, X, Calendar, MapPin, Shield, Phone } from "lucide-react";
 import { clinicConfig } from "@/config/clinic";
 import { mainNavItems } from "@/config/navigation";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
@@ -56,8 +56,16 @@ export function Header() {
 
           <div className="flex items-center gap-4">
             <span className="text-slate-300 font-medium">
-              Mon – Sat: 10:00 AM – 12:00 PM | 4:30 PM – 8:30 PM (Sun Closed)
+              Mon – Sat: 10:00 AM – 12:00 PM | 4:30 PM – 8:30 PM
             </span>
+            <span className="text-slate-700">|</span>
+            <a
+              href={`tel:${clinicConfig.contact.phoneNumber}`}
+              className="inline-flex items-center gap-1.5 text-teal-400 hover:text-teal-300 font-semibold transition-colors"
+            >
+              <Phone className="w-3.5 h-3.5" aria-hidden="true" />
+              <span>{clinicConfig.contact.displayPhone}</span>
+            </a>
           </div>
         </div>
       </div>
@@ -195,6 +203,14 @@ export function Header() {
                   Verified via Google Business Profile
                 </p>
               </div>
+
+              <a
+                href={`tel:${clinicConfig.contact.phoneNumber}`}
+                className="w-full text-center py-2.5 px-4 rounded-xl font-semibold text-xs text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 flex items-center justify-center gap-2"
+              >
+                <Phone className="w-4 h-4" aria-hidden="true" />
+                <span>Call Clinic: {clinicConfig.contact.displayPhone}</span>
+              </a>
 
               <Link
                 href="/contact#appointment-form"
