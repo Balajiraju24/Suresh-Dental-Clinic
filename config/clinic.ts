@@ -92,6 +92,8 @@ export interface ClinicConfig {
 
     appointmentBookingUrl: string | null;
     preferredContactMethod: "phone" | "whatsapp" | "form" | "in_person";
+    googleScriptEndpoint: string | null;
+    adminNotificationEmail: string;
   };
 
   // Operating Hours
@@ -287,7 +289,9 @@ export const clinicConfig: ClinicConfig = {
     isEmailVerified: false,
 
     appointmentBookingUrl: null,
-    preferredContactMethod: "phone"
+    preferredContactMethod: "phone",
+    googleScriptEndpoint: process.env.NEXT_PUBLIC_GOOGLE_SCRIPT_URL || null,
+    adminNotificationEmail: "balajiraju24@gmail.com"
   },
 
   hours: {
