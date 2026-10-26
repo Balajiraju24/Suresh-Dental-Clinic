@@ -13,6 +13,37 @@ export interface VerificationChecklistItem {
   notes: string;
 }
 
+export interface DoctorProfile {
+  id: string;
+  fullName: string;
+  salutation: string;
+  formalTitle: string;
+  role: string;
+  verifiedQualifications: string[];
+  qualificationsDisplay: string;
+  primarySpecialty: string;
+  secondarySpecialty: string;
+  medicalRegistrationNumber: string | null;
+  stateDentalCouncil: string | null;
+  education?: {
+    degree: string;
+    institution: string;
+    duration: string;
+    honors?: string;
+  }[];
+  researchExperience?: {
+    role: string;
+    institution: string;
+    duration: string;
+    highlights: string[];
+  }[];
+  shortBio: string;
+  detailedPhilosophy: string[];
+  academicBackgroundNote?: string;
+  profilePhotoUrl: string | null;
+  photoPlaceholderAlt: string;
+}
+
 export interface ClinicConfig {
   clinicName: string;
   displayName: string;
@@ -39,7 +70,7 @@ export interface ClinicConfig {
     state: string;
     country: string;
     postalCode: string | null;
-    streetAddress: string | null; // e.g. Door No., Street Name (to be verified)
+    streetAddress: string | null;
     fullAddressDisplay: string;
     googleMapsDirectionsUrl: string | null;
     landmarksNearby: string[];
@@ -47,11 +78,11 @@ export interface ClinicConfig {
 
   // Contact Information
   contact: {
-    phoneNumber: string | null; // Actual working phone to be provided by clinic
+    phoneNumber: string | null;
     displayPhone: string;
     isPhoneVerified: boolean;
     
-    whatsappNumber: string | null; // E.164 format without spaces, e.g. "+91..."
+    whatsappNumber: string | null;
     displayWhatsapp: string | null;
     isWhatsappVerified: boolean;
     
@@ -76,27 +107,14 @@ export interface ClinicConfig {
     consultationNotice: string;
   };
 
-  // Doctor Profile (Dr. R. Suresh)
-  doctor: {
-    fullName: string;
-    salutation: string;
-    formalTitle: string;
-    verifiedQualifications: string[]; // MDS, PhD, DSc
-    qualificationsDisplay: string;
-    primarySpecialty: string;
-    secondarySpecialty: string;
-    medicalRegistrationNumber: string | null; // To be confirmed by clinic
-    stateDentalCouncil: string | null; // e.g. Tamil Nadu Dental Council
-    
-    // Bio & Practice Philosophy
-    shortBio: string;
-    detailedPhilosophy: string[];
-    academicBackgroundNote: string;
-    
-    // Media & Visuals
-    profilePhotoUrl: string | null; // null triggers high-fidelity fallback placeholder
-    photoPlaceholderAlt: string;
-  };
+  // Lead Doctor Profile (Dr. R. Suresh)
+  doctor: DoctorProfile;
+
+  // Associate Doctor Profile (Dr. Ashritha Suresh)
+  associateDoctor: DoctorProfile;
+
+  // Full Clinical Team
+  team: DoctorProfile[];
 
   // Social & Web Links
   social: {
@@ -106,6 +124,81 @@ export interface ClinicConfig {
     youtube: string | null;
   };
 }
+
+export const leadDoctor: DoctorProfile = {
+  id: "dr-r-suresh",
+  fullName: "Dr. R. Suresh",
+  salutation: "Dr.",
+  formalTitle: "Dr. R. Suresh, MDS, PhD, DSc",
+  role: "Lead Periodontist & Implantologist",
+  verifiedQualifications: ["MDS", "PhD", "DSc"],
+  qualificationsDisplay: "MDS, PhD, DSc",
+  primarySpecialty: "Periodontics & Implantology",
+  secondarySpecialty: "Comprehensive Oral Rehabilitation & Preventive Dentistry",
+  medicalRegistrationNumber: null,
+  stateDentalCouncil: "Tamil Nadu Dental Council (Registration pending verification)",
+  
+  shortBio: "Dr. R. Suresh brings an exceptional academic and clinical pedigree holding MDS, PhD, and DSc degrees, focusing on surgical precision, evidence-based periodontal therapy, and advanced implant dentistry in Raja Annamalaipuram, Chennai.",
+  detailedPhilosophy: [
+    "Patient-first clinical approach emphasising clear diagnosis and gentle comfort at every stage.",
+    "Conservative treatment philosophy: preserving natural dentition and alveolar structures wherever possible.",
+    "Evidence-guided implantology adhering to established international surgical and restorative protocols.",
+    "Transparent dialogue regarding treatment options, clinical risks, and preventive maintenance."
+  ],
+  academicBackgroundNote: "Detailed biographical history, specialized fellowships, and clinical milestones will be published upon verified clinic approval.",
+  
+  profilePhotoUrl: null, // Gracefully renders dignified placeholder avatar
+  photoPlaceholderAlt: "Dr. R. Suresh clinical portrait frame (Official portrait to be updated upon clinic verification)"
+};
+
+export const associateDoctor: DoctorProfile = {
+  id: "dr-ashritha-suresh",
+  fullName: "Dr. Ashritha Suresh",
+  salutation: "Dr.",
+  formalTitle: "Dr. Ashritha Suresh, BDS",
+  role: "Associate Dental Surgeon & Biomaterials Researcher",
+  verifiedQualifications: ["BDS"],
+  qualificationsDisplay: "BDS",
+  primarySpecialty: "General & Restorative Dentistry",
+  secondarySpecialty: "Dental Biomaterials & Cellular Tissue Engineering",
+  medicalRegistrationNumber: null,
+  stateDentalCouncil: "Tamil Nadu Dental Council (Registration in progress)",
+  
+  education: [
+    {
+      degree: "Bachelor of Dental Surgery (BDS), Dentistry",
+      institution: "Sri Ramachandra Institute Of Higher Education and Research",
+      duration: "Aug 2018 – Nov 2023",
+      honors: "Grade: 3.83"
+    }
+  ],
+  researchExperience: [
+    {
+      role: "Research Assistant · Internship",
+      institution: "Indian Institute of Technology, Madras (IIT Madras)",
+      duration: "Sep 2024 – Present",
+      highlights: [
+        "Cell Culture Techniques: Conducting cell culture with fibroblast cells, including seeding, incubation, cryopreservation, and subculturing.",
+        "Electrospinning of polymer biomaterials for regenerative tissue scaffolds.",
+        "Flow cytometry for cellular analysis and characterization.",
+        "Lithography techniques for creating microfluidic chip channels for diagnostic cellular analyses.",
+        "Observed 3D-printed lung alveolar-sac fabrication for organ-on-a-chip microfluidic platforms.",
+        "Observed optoporation for enzyme delivery into stem cells using titanium nanoparticles and fluorescence microscopy verification.",
+        "Observed RT-PCR experiments for precise gene expression analysis."
+      ]
+    }
+  ],
+  
+  shortBio: "Dr. Ashritha Suresh is a dedicated dental graduate from Sri Ramachandra Institute of Higher Education and Research (BDS, Grade: 3.83). Concurrently engaged in frontier biomedical research at IIT Madras in cell culture, electrospinning polymer biomaterials, and microfluidics, she bridges advanced materials science with gentle, evidence-informed clinical dentistry.",
+  detailedPhilosophy: [
+    "Integrating contemporary biomaterials research and minimally invasive techniques into everyday clinical dental practice.",
+    "Patient-centric preventive care prioritizing gentle treatments and natural tooth structure preservation.",
+    "Committed to clear patient communication, oral hygiene education, and compassionate, meticulous care."
+  ],
+  
+  profilePhotoUrl: null,
+  photoPlaceholderAlt: "Dr. Ashritha Suresh BDS clinical portrait frame"
+};
 
 export const clinicConfig: ClinicConfig = {
   clinicName: "Dr. R. Suresh MDS, PhD, DSc Dental Clinic and Implant Centre",
@@ -218,30 +311,16 @@ export const clinicConfig: ClinicConfig = {
     consultationNotice: "Consultation hours sourced from verified Google Business profile. Prior appointment scheduling is recommended before visiting."
   },
 
-  doctor: {
-    fullName: "Dr. R. Suresh",
-    salutation: "Dr.",
-    formalTitle: "Dr. R. Suresh, MDS, PhD, DSc",
-    verifiedQualifications: ["MDS", "PhD", "DSc"],
-    qualificationsDisplay: "MDS, PhD, DSc",
-    primarySpecialty: "Periodontics & Implantology",
-    secondarySpecialty: "Oral Health & Comprehensive Preventive Dentistry",
-    medicalRegistrationNumber: null,
-    stateDentalCouncil: "Tamil Nadu Dental Council (Registration pending verification)",
-    
-    shortBio: "Dr. R. Suresh brings a distinguished academic foundation holding MDS, PhD, and DSc degrees, focusing on clinical precision, evidence-based periodontal therapy, and implant dentistry.",
-    detailedPhilosophy: [
-      "Patient-first clinical approach emphasising clear diagnosis and patient comfort at every stage.",
-      "Conservative treatment philosophy: preserving natural dentition and alveolar structures wherever possible.",
-      "Evidence-guided implantology adhering to established international surgical and restorative protocols.",
-      "Transparent dialogue regarding treatment options, clinical risks, and preventive maintenance."
-    ],
-    academicBackgroundNote: "Detailed biographical history, specialized fellowships, and clinical milestones will be published upon verified clinic approval.",
-    
-    profilePhotoUrl: null, // Uses /images/doctor-placeholder.svg gracefully
-    photoPlaceholderAlt: "Dr. R. Suresh clinical portrait frame (Official portrait to be updated upon clinic verification)"
-  },
+  // Lead Doctor Profile (Dr. R. Suresh)
+  doctor: leadDoctor,
 
+  // Associate Doctor Profile (Dr. Ashritha Suresh)
+  associateDoctor: associateDoctor,
+
+  // Full Clinical Team
+  team: [leadDoctor, associateDoctor],
+
+  // Social & Web Links
   social: {
     facebook: null,
     instagram: null,

@@ -25,7 +25,7 @@ export default function PatientInformationPage() {
     {
       id: "pi-faq-2",
       question: "What should I do if I feel nervous or anxious about dental examinations?",
-      answer: "Dental anxiety is very common. Please let our team know when scheduling your visit or when you arrive. Dr. R. Suresh maintains a calm, gentle clinical pace, explains each step before it happens, and you are always in complete control—you can pause the examination at any time simply by raising your hand."
+      answer: "Dental anxiety is very common. Please let our team know when scheduling your visit or when you arrive. Our clinicians maintain a calm, gentle clinical pace, explain each step before it happens, and you are always in complete control—you can pause the examination at any time simply by raising your hand."
     },
     {
       id: "pi-faq-3",

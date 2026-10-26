@@ -46,10 +46,7 @@ export function IntroSection() {
                 and personal treatment objectives.
               </p>
               <p>
-                Under the clinical direction of {clinicConfig.doctor.formalTitle}, our focus is
-                rooted in evidence-based practice: addressing root causes such as periodontal
-                inflammation and bone health before considering restorative interventions or
-                dental implant placement.
+                Under the clinical direction of {clinicConfig.doctor.formalTitle} and {clinicConfig.associateDoctor.formalTitle}, our practice is rooted in evidence-based care: addressing underlying periodontal health and alveolar bone stability alongside cutting-edge dental biomaterials and conservative restorations.
               </p>
             </div>
 

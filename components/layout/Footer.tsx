@@ -36,11 +36,10 @@ export function Footer() {
             <div className="bg-slate-900/90 rounded-xl p-3.5 border border-slate-800/80 text-xs text-slate-400 space-y-1.5">
               <div className="flex items-center gap-1.5 font-medium text-slate-300">
                 <Shield className="w-4 h-4 text-sky-400 flex-shrink-0" aria-hidden="true" />
-                <span>Clinical Leadership: {clinicConfig.doctor.formalTitle}</span>
+                <span>Clinical Team: {clinicConfig.doctor.fullName} &amp; {clinicConfig.associateDoctor.fullName}</span>
               </div>
               <p className="text-[11px] text-slate-500 leading-normal">
-                Academic qualifications: {clinicConfig.doctor.qualificationsDisplay}. Clinic
-                operational parameters are verified prior to formal public launch.
+                {clinicConfig.doctor.qualificationsDisplay} (Periodontics &amp; Implants) &bull; {clinicConfig.associateDoctor.qualificationsDisplay} (Sri Ramachandra &bull; IIT Madras Research).
               </p>
             </div>
           </div>

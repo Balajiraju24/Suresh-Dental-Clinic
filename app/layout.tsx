@@ -31,16 +31,22 @@ export const metadata: Metadata = {
   description: clinicConfig.description,
   keywords: [
     "Dr R Suresh",
+    "Dr Ashritha Suresh",
     "Dental Clinic Chennai",
     "Dentist RA Puram",
     "Dental Implants Chennai",
     "Periodontist Chennai",
     "Gum treatment Chennai",
     "Raja Annamalaipuram dental clinic",
+    "Sri Ramachandra Dental Graduate",
+    "IIT Madras dental biomaterials",
     "Periodontal care",
     "Oral health Chennai",
   ],
-  authors: [{ name: clinicConfig.doctor.fullName }],
+  authors: [
+    { name: clinicConfig.doctor.fullName },
+    { name: clinicConfig.associateDoctor.fullName },
+  ],
   creator: clinicConfig.displayName,
   publisher: clinicConfig.clinicName,
   openGraph: {
@@ -79,8 +85,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Conservative Schema.org JSON-LD Structured Data
-  // Reflects provisional Monday - Sunday 10am - 8pm consultation hours
+  // Schema.org JSON-LD Structured Data
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Dentist",
@@ -111,8 +116,22 @@ export default function RootLayout({
       "@type": "Person",
       name: clinicConfig.doctor.fullName,
       honorificPrefix: clinicConfig.doctor.salutation,
-      jobTitle: "Lead Dentist & Periodontist",
+      jobTitle: "Lead Periodontist & Implantologist",
     },
+    employee: [
+      {
+        "@type": "Person",
+        name: clinicConfig.doctor.fullName,
+        honorificPrefix: clinicConfig.doctor.salutation,
+        jobTitle: clinicConfig.doctor.role,
+      },
+      {
+        "@type": "Person",
+        name: clinicConfig.associateDoctor.fullName,
+        honorificPrefix: clinicConfig.associateDoctor.salutation,
+        jobTitle: clinicConfig.associateDoctor.role,
+      },
+    ],
     openingHoursSpecification: [
       {
         "@type": "OpeningHoursSpecification",
