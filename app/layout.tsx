@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { VerificationBanner } from "@/components/layout/VerificationBanner";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { clinicConfig } from "@/config/clinic";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -13,7 +14,10 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#0c2340",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#0c2340" },
+    { media: "(prefers-color-scheme: dark)", color: "#030712" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
@@ -76,7 +80,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   // Conservative Schema.org JSON-LD Structured Data
-  // Excludes fake reviews, ratings, or unverified phone numbers as per instructions
+  // Reflects provisional Monday - Sunday 10am - 8pm consultation hours
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Dentist",
@@ -116,43 +120,67 @@ export default function RootLayout({
           "Thursday",
           "Friday",
           "Saturday",
+          "Sunday",
         ],
-        opens: "09:30",
-        closes: "20:30",
+        opens: "10:00",
+        closes: "20:00",
       },
     ],
   };
 
   return (
-    <html lang="en" className={`${plusJakartaSans.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={`${plusJakartaSans.variable} h-full antialiased`}
+    >
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var t = localStorage.getItem('theme');
+                  var m = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  if (t === 'dark' || (!t && m)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                } catch (_) {}
+              })();
+            `,
+          }}
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
         />
       </head>
-      <body className="min-h-full flex flex-col font-sans bg-white text-slate-900 selection:bg-sky-100 selection:text-sky-900">
-        {/* Accessible Skip Link for Screen Readers & Keyboard Navigation */}
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-sky-800 focus:text-white focus:rounded-lg focus:shadow-lg focus:outline-none"
-        >
-          Skip to main content
-        </a>
+      <body className="min-h-full flex flex-col font-sans bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-sky-100 selection:text-sky-900 dark:selection:bg-sky-900 dark:selection:text-sky-100 transition-colors duration-200">
+        <ThemeProvider>
+          {/* Accessible Skip Link for Screen Readers & Keyboard Navigation */}
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-sky-800 focus:text-white focus:rounded-lg focus:shadow-lg focus:outline-none"
+          >
+            Skip to main content
+          </a>
 
-        {/* Development & Verification Status Banner */}
-        <VerificationBanner />
+          {/* Development & Verification Status Banner */}
+          <VerificationBanner />
 
-        {/* Global Responsive Header */}
-        <Header />
+          {/* Global Responsive Header */}
+          <Header />
 
-        {/* Main Page Content Landmark */}
-        <main id="main-content" className="flex-1">
-          {children}
-        </main>
+          {/* Main Page Content Landmark */}
+          <main id="main-content" className="flex-1">
+            {children}
+          </main>
 
-        {/* Global Footer */}
-        <Footer />
+          {/* Global Footer */}
+          <Footer />
+        </ThemeProvider>
       </body>
     </html>
   );

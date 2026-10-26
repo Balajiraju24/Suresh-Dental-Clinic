@@ -2,9 +2,8 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
-import { CheckCircle2, AlertCircle, ArrowRight, Calendar, ShieldCheck, HelpCircle } from "lucide-react";
+import { CheckCircle2, AlertCircle, Calendar, ShieldCheck } from "lucide-react";
 import { servicesData } from "@/config/services";
-import { clinicConfig } from "@/config/clinic";
 import { Accordion } from "@/components/shared/Accordion";
 import { Card } from "@/components/shared/Card";
 
@@ -20,47 +19,47 @@ export default function DentalImplantsPage() {
   const service = servicesData.find((s) => s.slug === "dental-implants")!;
 
   return (
-    <div className="py-12 sm:py-16 lg:py-20 bg-slate-50/50">
+    <div className="py-12 sm:py-16 lg:py-20 bg-slate-50/50 dark:bg-slate-950 transition-colors duration-200">
       <div className="clinic-container">
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="mb-8">
-          <ol className="flex items-center space-x-2 text-xs sm:text-sm text-slate-500">
+          <ol className="flex items-center space-x-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             <li>
-              <Link href="/" className="hover:text-sky-700 transition-colors">
+              <Link href="/" className="hover:text-sky-700 dark:hover:text-sky-400 transition-colors">
                 Home
               </Link>
             </li>
             <li>/</li>
             <li>
-              <Link href="/services" className="hover:text-sky-700 transition-colors">
+              <Link href="/services" className="hover:text-sky-700 dark:hover:text-sky-400 transition-colors">
                 Services
               </Link>
             </li>
             <li>/</li>
-            <li className="font-semibold text-slate-900" aria-current="page">
+            <li className="font-semibold text-slate-900 dark:text-white" aria-current="page">
               Dental Implants
             </li>
           </ol>
         </nav>
 
         {/* Hero Section */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-10 lg:p-12 mb-12">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-sm p-6 sm:p-10 lg:p-12 mb-12">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             <div className="lg:col-span-7 space-y-5">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-sky-50 text-sky-800 border border-sky-200">
-                <ShieldCheck className="w-3.5 h-3.5 text-sky-600" aria-hidden="true" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-sky-50 dark:bg-sky-950/70 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80">
+                <ShieldCheck className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" aria-hidden="true" />
                 <span>Specialist Restorative Implantology</span>
               </span>
 
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-950 tracking-tight leading-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-slate-950 dark:text-white tracking-tight leading-tight">
                 {service.name}
               </h1>
 
-              <p className="text-lg sm:text-xl text-sky-800 font-medium">
+              <p className="text-lg sm:text-xl text-sky-800 dark:text-sky-300 font-medium">
                 {service.subtitle}
               </p>
 
-              <p className="text-slate-600 text-base sm:text-lg leading-relaxed">
+              <p className="text-slate-600 dark:text-slate-300 text-base sm:text-lg leading-relaxed">
                 {service.educationalSummary}
               </p>
 
@@ -77,7 +76,7 @@ export default function DentalImplantsPage() {
 
             {/* Scientific Image */}
             <div className="lg:col-span-5">
-              <div className="relative aspect-[16/11] rounded-2xl overflow-hidden border border-slate-200 shadow-md bg-slate-900">
+              <div className="relative aspect-[16/11] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-md bg-slate-900">
                 <Image
                   src={service.image || "/images/dental-implants.jpg"}
                   alt="Educational 3D medical diagram of a dental implant showing titanium fixture, abutment, ceramic crown, and osseointegration into alveolar bone"
@@ -87,7 +86,7 @@ export default function DentalImplantsPage() {
                   priority
                 />
               </div>
-              <p className="text-[11px] text-slate-500 mt-2 text-center">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-2 text-center">
                 Cross-sectional anatomical illustration: Titanium implant fixture integrated into alveolar bone.
               </p>
             </div>
@@ -95,13 +94,13 @@ export default function DentalImplantsPage() {
         </div>
 
         {/* Essential Clinical Suitability Alert */}
-        <div className="mb-12 p-5 bg-amber-50 rounded-2xl border border-amber-200 text-sm text-amber-950 flex items-start gap-3">
-          <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+        <div className="mb-12 p-5 bg-amber-50 dark:bg-amber-950/40 rounded-2xl border border-amber-200 dark:border-amber-900/60 text-sm text-amber-950 dark:text-amber-200 flex items-start gap-3">
+          <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
           <div className="space-y-1">
-            <h2 className="font-bold text-amber-900 text-sm">
+            <h2 className="font-bold text-amber-900 dark:text-amber-300 text-sm">
               Clinical Suitability &amp; Candidacy Notice:
             </h2>
-            <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
+            <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-200/90 leading-relaxed">
               {service.patientSuitabilityNote}
             </p>
           </div>
@@ -110,13 +109,13 @@ export default function DentalImplantsPage() {
         {/* When a Consultation is Appropriate */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
           <Card className="p-6 sm:p-8">
-            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
               <span>When an Implant Consultation is Appropriate</span>
             </h2>
             <ul className="space-y-3">
               {service.clinicalIndications.map((item, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-sm text-slate-700">
-                  <CheckCircle2 className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <li key={idx} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
+                  <CheckCircle2 className="w-5 h-5 text-teal-600 dark:text-teal-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -124,13 +123,13 @@ export default function DentalImplantsPage() {
           </Card>
 
           <Card className="p-6 sm:p-8">
-            <h2 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
               <span>What the Treatment Involves</span>
             </h2>
             <ul className="space-y-3">
               {service.whatTreatmentInvolves.map((item, idx) => (
-                <li key={idx} className="flex items-start gap-3 text-sm text-slate-700">
-                  <CheckCircle2 className="w-5 h-5 text-sky-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <li key={idx} className="flex items-start gap-3 text-sm text-slate-700 dark:text-slate-300">
+                  <CheckCircle2 className="w-5 h-5 text-sky-600 dark:text-sky-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -139,15 +138,15 @@ export default function DentalImplantsPage() {
         </div>
 
         {/* General Treatment Process Overview */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-10 lg:p-12 mb-16">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-10 lg:p-12 mb-16 shadow-sm">
           <div className="max-w-3xl mb-8">
-            <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
+            <span className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400">
               Step-by-Step Overview
             </span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight mt-1">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 dark:text-white tracking-tight mt-1">
               The Dental Implant Protocol
             </h2>
-            <p className="text-slate-600 text-sm sm:text-base mt-2">
+            <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base mt-2">
               A general sequence of clinical milestones from initial diagnostic scans through biological osseointegration and definitive crown placement.
             </p>
           </div>
@@ -156,16 +155,16 @@ export default function DentalImplantsPage() {
             {service.procedureOverview.map((step) => (
               <div
                 key={step.stepNumber}
-                className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between"
+                className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 flex flex-col justify-between"
               >
                 <div>
-                  <div className="w-8 h-8 rounded-lg bg-sky-100 text-sky-800 font-bold text-xs flex items-center justify-center mb-3">
+                  <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-300 font-bold text-xs flex items-center justify-center mb-3">
                     Step {step.stepNumber}
                   </div>
-                  <h3 className="font-bold text-slate-900 text-base mb-2">
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base mb-2">
                     {step.title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                     {step.description}
                   </p>
                 </div>
@@ -200,18 +199,18 @@ export default function DentalImplantsPage() {
         {/* Frequently Asked Questions */}
         <div className="mb-16">
           <div className="max-w-3xl mx-auto mb-8 text-center">
-            <span className="text-xs font-bold uppercase tracking-wider text-sky-700">
+            <span className="text-xs font-bold uppercase tracking-wider text-sky-700 dark:text-sky-400">
               Common Questions
             </span>
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight mt-1">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 dark:text-white tracking-tight mt-1">
               Dental Implants FAQs
             </h2>
-            <p className="text-slate-600 text-sm mt-2">
+            <p className="text-slate-600 dark:text-slate-300 text-sm mt-2">
               Carefully formulated educational answers based on contemporary clinical dental research.
             </p>
           </div>
 
-          <div className="max-w-3xl mx-auto bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-sm">
+          <div className="max-w-3xl mx-auto bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800 shadow-sm">
             <Accordion
               items={service.faqs.map((f, i) => ({
                 id: `implant-faq-${i}`,
@@ -224,11 +223,11 @@ export default function DentalImplantsPage() {
         </div>
 
         {/* Contact CTA */}
-        <div className="text-center bg-white rounded-3xl border border-slate-200/90 p-8 sm:p-12 shadow-sm">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 mb-3">
+        <div className="text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 p-8 sm:p-12 shadow-sm">
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 dark:text-white mb-3">
             Schedule an Implant Consultation with Dr. R. Suresh
           </h2>
-          <p className="text-slate-600 text-sm sm:text-base max-w-xl mx-auto mb-6">
+          <p className="text-slate-600 dark:text-slate-300 text-sm sm:text-base max-w-xl mx-auto mb-6">
             Consultations in R.A. Puram, Chennai, include evaluation of bone density, bite mechanics, and tailored restorative options.
           </p>
           <Link

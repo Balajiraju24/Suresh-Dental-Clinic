@@ -106,10 +106,10 @@ export function Footer() {
                 <Clock className="w-4 h-4 text-sky-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <div>
                   <p className="text-slate-300 font-medium">Consultation Timings:</p>
-                  <p>Mon – Sat: 9:30 AM – 1:00 PM</p>
-                  <p>Evening: 4:30 PM – 8:30 PM</p>
-                  <p className="text-[11px] text-slate-500 mt-0.5">
-                    Sunday by prior appointment
+                  <p>Mon – Sun: 10:00 AM – 1:00 PM</p>
+                  <p>Evening: 4:00 PM – 8:00 PM</p>
+                  <p className="text-[11px] text-amber-400/90 mt-1 font-medium">
+                    Provisional (Verification Required)
                   </p>
                 </div>
               </div>

@@ -20,9 +20,9 @@ export function SectionHeader({
   const isCentered = alignment === "center";
 
   const badgeStyles = {
-    info: "bg-sky-50 text-sky-800 border-sky-200/80",
-    neutral: "bg-slate-100 text-slate-800 border-slate-200",
-    warning: "bg-amber-50 text-amber-900 border-amber-200"
+    info: "bg-sky-50 dark:bg-sky-950/70 text-sky-800 dark:text-sky-300 border-sky-200/80 dark:border-sky-800/80",
+    neutral: "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700",
+    warning: "bg-amber-50 dark:bg-amber-950/70 text-amber-900 dark:text-amber-300 border-amber-200 dark:border-amber-800/80"
   };
 
   return (
@@ -38,11 +38,11 @@ export function SectionHeader({
           {badge}
         </span>
       )}
-      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-900 leading-tight">
+      <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight text-slate-950 dark:text-white leading-tight">
         {title}
       </h2>
       {subtitle && (
-        <p className="mt-4 text-base sm:text-lg text-slate-600 leading-relaxed font-normal">
+        <p className="mt-4 text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
           {subtitle}
         </p>
       )}

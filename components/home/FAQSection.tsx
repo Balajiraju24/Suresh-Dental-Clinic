@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { HelpCircle, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { SectionHeader } from "@/components/shared/SectionHeader";
 import { Accordion, AccordionItem } from "@/components/shared/Accordion";
 
@@ -34,7 +34,7 @@ export function FAQSection() {
   ];
 
   return (
-    <section className="py-16 sm:py-24 bg-slate-50/70 border-t border-slate-200/80">
+    <section className="py-16 sm:py-24 bg-slate-50/70 dark:bg-slate-950/80 border-t border-slate-200/80 dark:border-slate-800 transition-colors duration-200">
       <div className="clinic-container">
         <SectionHeader
           badge="Frequently Asked Questions"
@@ -42,16 +42,16 @@ export function FAQSection() {
           subtitle="Carefully formulated answers to help you understand appointments, periodontal care, and restorative options."
         />
 
-        <div className="max-w-3xl mx-auto bg-white rounded-2xl p-6 sm:p-8 border border-slate-200/90 shadow-sm">
+        <div className="max-w-3xl mx-auto bg-white dark:bg-slate-900 rounded-2xl p-6 sm:p-8 border border-slate-200/90 dark:border-slate-800 shadow-sm">
           <Accordion items={faqItems} defaultOpenId="faq-first-appointment" />
 
-          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs sm:text-sm text-slate-500">
+          <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             <p>
               Have a question that is not addressed here?
             </p>
             <Link
               href="/contact#appointment-form"
-              className="inline-flex items-center gap-1.5 font-semibold text-sky-700 hover:text-sky-800 transition-colors"
+              className="inline-flex items-center gap-1.5 font-semibold text-sky-700 dark:text-sky-400 hover:text-sky-800 dark:hover:text-sky-300 transition-colors"
             >
               <span>Submit a General Enquiry</span>
               <ArrowRight className="w-4 h-4" aria-hidden="true" />

@@ -162,7 +162,7 @@ export const clinicConfig: ClinicConfig = {
         id: "consultation-hours",
         field: "Clinic Operating Timings",
         status: "pending_clinic_review",
-        notes: "Provisional morning & evening consultation slots displayed. Clinic confirmation required."
+        notes: "Provisional hours: Mon – Sun (Morning: 10:00 AM – 1:00 PM | Evening: 4:00 PM – 8:00 PM). Pending confirmation by the clinic."
       }
     ]
   },
@@ -200,22 +200,15 @@ export const clinicConfig: ClinicConfig = {
   hours: {
     regularSchedule: [
       {
-        days: "Monday – Saturday",
-        morningSlot: "09:30 AM – 01:00 PM",
-        eveningSlot: "04:30 PM – 08:30 PM",
-        fullDayDisplay: "Mon – Sat: 9:30 AM – 1:00 PM | 4:30 PM – 8:30 PM",
-        isVerified: false
-      },
-      {
-        days: "Sunday",
+        days: "Monday – Sunday",
         morningSlot: "10:00 AM – 01:00 PM",
-        eveningSlot: null,
-        fullDayDisplay: "Sunday: By Prior Appointment Only",
+        eveningSlot: "04:00 PM – 08:00 PM",
+        fullDayDisplay: "Mon – Sun: 10:00 AM – 1:00 PM | 4:00 PM – 8:00 PM",
         isVerified: false
       }
     ],
-    emergencyNote: "For urgent dental concerns, please visit or call in advance to ensure specialist availability.",
-    consultationNotice: "Consultations are preferentially scheduled by prior appointment to minimise waiting time."
+    emergencyNote: "For urgent dental concerns, please contact the clinic in advance to ensure specialist availability.",
+    consultationNotice: "These are provisional consultation hours and are pending confirmation by the clinic. Please contact the clinic to confirm availability before visiting."
   },
 
   doctor: {

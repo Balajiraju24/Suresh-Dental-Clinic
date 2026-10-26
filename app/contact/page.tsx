@@ -35,7 +35,7 @@ interface FormErrors {
 }
 
 export default function ContactPage() {
-  const { location, hours, contact } = clinicConfig;
+  const { location, contact } = clinicConfig;
 
   const [formData, setFormData] = useState<FormState>({
     fullName: "",
@@ -70,7 +70,7 @@ export default function ContactPage() {
           newErrors.contactDetail = "Please provide a valid email format (e.g. name@example.com).";
         }
       } else {
-        // Phone / WhatsApp validation: at least 10 digits
+        // Phone / WhatsApp validation: at least 8 digits
         const cleanPhone = formData.contactDetail.replace(/[\s\-\(\)\+]/g, "");
         if (cleanPhone.length < 8 || cleanPhone.length > 15) {
           newErrors.contactDetail = "Please enter a valid telephone/mobile number (8–15 digits).";
@@ -118,18 +118,18 @@ export default function ContactPage() {
   };
 
   return (
-    <div className="py-12 sm:py-16 lg:py-20 bg-slate-50/50">
+    <div className="py-12 sm:py-16 lg:py-20 bg-slate-50/50 dark:bg-slate-950 transition-colors duration-200">
       <div className="clinic-container">
         {/* Breadcrumb Navigation */}
         <nav aria-label="Breadcrumb" className="mb-8">
-          <ol className="flex items-center space-x-2 text-xs sm:text-sm text-slate-500">
+          <ol className="flex items-center space-x-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             <li>
-              <Link href="/" className="hover:text-sky-700 transition-colors">
+              <Link href="/" className="hover:text-sky-700 dark:hover:text-sky-400 transition-colors">
                 Home
               </Link>
             </li>
             <li>/</li>
-            <li className="font-semibold text-slate-900" aria-current="page">
+            <li className="font-semibold text-slate-900 dark:text-white" aria-current="page">
               Contact &amp; Appointments
             </li>
           </ol>
@@ -144,29 +144,29 @@ export default function ContactPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 mb-16 items-start">
           {/* Clinic Contact Details & Operating Hours Column */}
           <div className="lg:col-span-5 space-y-6">
-            <Card className="p-6 sm:p-8 bg-white border border-slate-200/90 shadow-sm space-y-6">
+            <Card className="p-6 sm:p-8 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm space-y-6">
               <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-teal-700">
+                <span className="text-xs font-bold uppercase tracking-wider text-teal-700 dark:text-teal-400">
                   Location &amp; Practice Address
                 </span>
-                <h2 className="text-xl font-bold text-slate-950 mt-1">
+                <h2 className="text-xl font-bold text-slate-950 dark:text-white mt-1">
                   {clinicConfig.clinicName}
                 </h2>
               </div>
 
               {/* Address with Verification Notice */}
-              <div className="space-y-3 text-sm text-slate-700 border-t border-slate-100 pt-4">
+              <div className="space-y-3 text-sm text-slate-700 dark:text-slate-300 border-t border-slate-100 dark:border-slate-800 pt-4">
                 <div className="flex items-start gap-3">
-                  <MapPin className="w-5 h-5 text-teal-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  <MapPin className="w-5 h-5 text-teal-600 dark:text-teal-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
-                    <p className="font-semibold text-slate-900">
+                    <p className="font-semibold text-slate-900 dark:text-white">
                       {location.locality}
                     </p>
-                    <p className="text-slate-600">
+                    <p className="text-slate-600 dark:text-slate-400">
                       {location.city}, {location.state}, {location.country}
                     </p>
-                    <div className="mt-2 p-2.5 rounded-lg bg-amber-50/80 border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                    <div className="mt-2 p-2.5 rounded-lg bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                       <span>
                         Exact door and street number verification in progress before public launch.
                       </span>
@@ -176,25 +176,25 @@ export default function ContactPage() {
               </div>
 
               {/* Contact Channels */}
-              <div className="space-y-3 text-sm border-t border-slate-100 pt-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <div className="space-y-3 text-sm border-t border-slate-100 dark:border-slate-800 pt-4">
+                <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Direct Communications
                 </p>
 
                 {/* Telephone */}
-                <div className="flex items-start gap-3 text-slate-700">
-                  <Phone className="w-5 h-5 text-sky-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="flex items-start gap-3 text-slate-700 dark:text-slate-300">
+                  <Phone className="w-5 h-5 text-sky-600 dark:text-sky-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
-                    <p className="font-semibold text-slate-900">Telephone Line</p>
+                    <p className="font-semibold text-slate-900 dark:text-white">Telephone Line</p>
                     {contact.isPhoneVerified && contact.phoneNumber ? (
                       <a
                         href={`tel:${contact.phoneNumber}`}
-                        className="text-sky-700 hover:underline font-medium"
+                        className="text-sky-700 dark:text-sky-400 hover:underline font-medium"
                       >
                         {contact.phoneNumber}
                       </a>
                     ) : (
-                      <p className="text-xs text-slate-500 italic mt-0.5">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 italic mt-0.5">
                         Phone line verification in progress (disabled in preview)
                       </p>
                     )}
@@ -202,22 +202,22 @@ export default function ContactPage() {
                 </div>
 
                 {/* WhatsApp */}
-                <div className="flex items-start gap-3 text-slate-700">
-                  <MessageSquare className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="flex items-start gap-3 text-slate-700 dark:text-slate-300">
+                  <MessageSquare className="w-5 h-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
-                    <p className="font-semibold text-slate-900">WhatsApp Consultation</p>
+                    <p className="font-semibold text-slate-900 dark:text-white">WhatsApp Consultation</p>
                     {contact.isWhatsappVerified && contact.whatsappNumber ? (
                       <a
                         href={`https://wa.me/${contact.whatsappNumber}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-emerald-700 hover:underline font-medium inline-flex items-center gap-1"
+                        className="text-emerald-700 dark:text-emerald-400 hover:underline font-medium inline-flex items-center gap-1"
                       >
                         <span>Chat via WhatsApp</span>
                         <ExternalLink className="w-3 h-3" aria-hidden="true" />
                       </a>
                     ) : (
-                      <p className="text-xs text-slate-500 italic mt-0.5">
+                      <p className="text-xs text-slate-500 dark:text-slate-400 italic mt-0.5">
                         WhatsApp consultation line pending clinic confirmation
                       </p>
                     )}
@@ -225,11 +225,11 @@ export default function ContactPage() {
                 </div>
 
                 {/* Email */}
-                <div className="flex items-start gap-3 text-slate-700">
-                  <Mail className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                <div className="flex items-start gap-3 text-slate-700 dark:text-slate-300">
+                  <Mail className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                   <div>
-                    <p className="font-semibold text-slate-900">Email Enquiries</p>
-                    <p className="text-xs text-slate-500 mt-0.5">
+                    <p className="font-semibold text-slate-900 dark:text-white">Email Enquiries</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                       {contact.displayEmail}
                     </p>
                   </div>
@@ -237,19 +237,27 @@ export default function ContactPage() {
               </div>
 
               {/* Consultation Timings */}
-              <div className="border-t border-slate-100 pt-4 space-y-3">
+              <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-3">
                 <div className="flex items-start gap-3">
-                  <Clock className="w-5 h-5 text-sky-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                  <div>
-                    <p className="font-semibold text-slate-900 text-sm">
-                      Consultation Hours
+                  <Clock className="w-5 h-5 text-sky-600 dark:text-sky-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-slate-900 dark:text-white text-sm">
+                      Clinic Operating Hours
                     </p>
-                    <div className="text-xs text-slate-600 mt-1 space-y-1">
-                      <p className="font-medium text-slate-800">Monday – Saturday:</p>
-                      <p>Morning: 09:30 AM – 01:00 PM</p>
-                      <p>Evening: 04:30 PM – 08:30 PM</p>
-                      <p className="font-medium text-slate-800 pt-1">Sunday:</p>
-                      <p>By Prior Appointment Only</p>
+                    <div className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 space-y-1">
+                      <p className="font-semibold text-slate-900 dark:text-slate-100">
+                        Days: Monday – Sunday
+                      </p>
+                      <p>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">Morning Consultation:</span> 10:00 AM – 1:00 PM
+                      </p>
+                      <p>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">Evening Consultation:</span> 4:00 PM – 8:00 PM
+                      </p>
+                    </div>
+
+                    <div className="mt-3 p-2.5 rounded-lg bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-[11px] text-amber-900 dark:text-amber-200 leading-snug">
+                      <span className="font-semibold">Verification Required:</span> These are provisional consultation hours and are pending confirmation by the clinic. Please contact the clinic to confirm availability before visiting.
                     </div>
                   </div>
                 </div>
@@ -257,22 +265,22 @@ export default function ContactPage() {
             </Card>
 
             {/* Google Maps / Directions Placeholder Card */}
-            <Card className="p-6 bg-white border border-slate-200/90 shadow-sm">
-              <h3 className="font-bold text-slate-900 text-base mb-2 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-teal-600" aria-hidden="true" />
+            <Card className="p-6 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm">
+              <h3 className="font-bold text-slate-900 dark:text-white text-base mb-2 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-teal-600 dark:text-teal-400" aria-hidden="true" />
                 <span>Clinic Directions &amp; Location Map</span>
               </h3>
-              <p className="text-xs text-slate-600 mb-4 leading-relaxed">
+              <p className="text-xs text-slate-600 dark:text-slate-400 mb-4 leading-relaxed">
                 The practice is located in Raja Annamalaipuram (R.A. Puram), accessible via R.A. Puram Main Road and Chamiers Road.
               </p>
 
               {/* Map visual placeholder */}
-              <div className="aspect-[16/9] w-full rounded-xl bg-slate-100 border border-slate-200 flex flex-col items-center justify-center p-4 text-center">
-                <MapPin className="w-8 h-8 text-slate-400 mb-2" aria-hidden="true" />
-                <p className="text-xs font-semibold text-slate-700">
+              <div className="aspect-[16/9] w-full rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center p-4 text-center">
+                <MapPin className="w-8 h-8 text-slate-400 dark:text-slate-500 mb-2" aria-hidden="true" />
+                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                   Interactive Google Map Embed
                 </p>
-                <p className="text-[11px] text-slate-500 mt-1 max-w-xs">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 max-w-xs">
                   Exact GPS coordinates and directions will be integrated once the official clinic address is confirmed.
                 </p>
               </div>
@@ -281,62 +289,62 @@ export default function ContactPage() {
 
           {/* Appointment Enquiry Form Column */}
           <div id="appointment-form" className="lg:col-span-7">
-            <Card className="p-6 sm:p-10 bg-white border border-slate-200/90 shadow-sm">
+            <Card className="p-6 sm:p-10 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-sm">
               <div className="mb-6">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-sky-50 text-sky-800 border border-sky-200 mb-2">
-                  <Calendar className="w-3.5 h-3.5 text-sky-600" aria-hidden="true" />
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-sky-50 dark:bg-sky-950/70 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800/80 mb-2">
+                  <Calendar className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" aria-hidden="true" />
                   <span>Online Request</span>
                 </div>
-                <h2 className="text-2xl font-bold text-slate-950 tracking-tight">
+                <h2 className="text-2xl font-bold text-slate-950 dark:text-white tracking-tight">
                   Request an Appointment Consultation
                 </h2>
-                <p className="text-sm text-slate-600 mt-1 leading-relaxed">
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
                   Submit your contact preference and desired consultation slot. Please note that this is a frontend prototype demonstrating client-side validation.
                 </p>
               </div>
 
               {/* Privacy Warning: No Sensitive Medical Data Collected */}
-              <div className="mb-6 p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 flex items-start gap-2.5">
-                <Info className="w-4 h-4 text-sky-600 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <div className="mb-6 p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 flex items-start gap-2.5">
+                <Info className="w-4 h-4 text-sky-600 dark:text-sky-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
                 <p>
-                  <span className="font-semibold text-slate-800">Privacy Notice:</span> To protect your confidential medical information, do not submit detailed medical histories or acute diagnostic symptoms through this form. Clinical assessments are conducted in person.
+                  <span className="font-semibold text-slate-800 dark:text-white">Privacy Notice:</span> To protect your confidential medical information, do not submit detailed medical histories or acute diagnostic symptoms through this form. Clinical assessments are conducted in person.
                 </p>
               </div>
 
               {/* Form or Prototype Confirmation State */}
               {prototypeSubmitted && submittedDataPreview ? (
                 <div className="space-y-6 py-4">
-                  <div className="p-5 bg-sky-50 rounded-2xl border border-sky-200 text-sky-950 space-y-3">
-                    <div className="flex items-center gap-2 font-bold text-base text-sky-900">
-                      <CheckCircle2 className="w-5 h-5 text-sky-600" aria-hidden="true" />
+                  <div className="p-5 bg-sky-50 dark:bg-sky-950/70 rounded-2xl border border-sky-200 dark:border-sky-800 text-sky-950 dark:text-sky-200 space-y-3">
+                    <div className="flex items-center gap-2 font-bold text-base text-sky-900 dark:text-sky-100">
+                      <CheckCircle2 className="w-5 h-5 text-sky-600 dark:text-sky-400" aria-hidden="true" />
                       <span>Form Client-Side Validation Successful</span>
                     </div>
-                    <p className="text-xs sm:text-sm text-sky-800 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-sky-800 dark:text-sky-300 leading-relaxed">
                       This is a frontend demonstration prototype. In production, this form will connect directly to the clinic&apos;s verified appointment management system or secure email gateway. No actual data has been transmitted to a server or stored in local storage.
                     </p>
                   </div>
 
                   {/* Validated Data Summary */}
-                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3 text-xs sm:text-sm">
-                    <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wider">
+                  <div className="bg-slate-50 dark:bg-slate-800/80 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-3 text-xs sm:text-sm">
+                    <h4 className="font-bold text-slate-900 dark:text-white text-xs uppercase tracking-wider">
                       Validated Input Summary:
                     </h4>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700 dark:text-slate-300">
                       <div>
-                        <span className="text-slate-500 block text-xs">Patient Name:</span>
-                        <span className="font-medium">{submittedDataPreview.fullName}</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-xs">Patient Name:</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{submittedDataPreview.fullName}</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block text-xs">Contact Method:</span>
-                        <span className="font-medium capitalize">{submittedDataPreview.contactMethod} ({submittedDataPreview.contactDetail})</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-xs">Contact Method:</span>
+                        <span className="font-medium text-slate-900 dark:text-white capitalize">{submittedDataPreview.contactMethod} ({submittedDataPreview.contactDetail})</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block text-xs">Preferred Slot:</span>
-                        <span className="font-medium">{submittedDataPreview.preferredTiming}</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-xs">Preferred Slot:</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{submittedDataPreview.preferredTiming}</span>
                       </div>
                       <div>
-                        <span className="text-slate-500 block text-xs">General Enquiry:</span>
-                        <span className="font-medium">{submittedDataPreview.enquiryMessage}</span>
+                        <span className="text-slate-500 dark:text-slate-400 block text-xs">General Enquiry:</span>
+                        <span className="font-medium text-slate-900 dark:text-white">{submittedDataPreview.enquiryMessage}</span>
                       </div>
                     </div>
                   </div>
@@ -344,7 +352,7 @@ export default function ContactPage() {
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-colors"
+                    className="inline-flex items-center justify-center gap-2 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-950 font-medium text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-colors"
                   >
                     <span>Reset Prototype Form</span>
                   </button>
@@ -355,9 +363,9 @@ export default function ContactPage() {
                   <div>
                     <label
                       htmlFor="fullName"
-                      className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
+                      className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5"
                     >
-                      Patient Full Name <span className="text-rose-600">*</span>
+                      Patient Full Name <span className="text-rose-600 dark:text-rose-400">*</span>
                     </label>
                     <input
                       type="text"
@@ -369,12 +377,14 @@ export default function ContactPage() {
                       aria-required="true"
                       aria-invalid={!!errors.fullName}
                       aria-describedby={errors.fullName ? "fullName-error" : undefined}
-                      className={`w-full px-4 py-3 rounded-xl border text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 ${
-                        errors.fullName ? "border-rose-400 bg-rose-50/30" : "border-slate-300 bg-white"
+                      className={`w-full px-4 py-3 rounded-xl border text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors ${
+                        errors.fullName
+                          ? "border-rose-400 dark:border-rose-600 bg-rose-50/30 dark:bg-rose-950/30"
+                          : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
                       }`}
                     />
                     {errors.fullName && (
-                      <p id="fullName-error" className="text-xs text-rose-600 mt-1">
+                      <p id="fullName-error" className="text-xs text-rose-600 dark:text-rose-400 mt-1">
                         {errors.fullName}
                       </p>
                     )}
@@ -385,9 +395,9 @@ export default function ContactPage() {
                     <div>
                       <label
                         htmlFor="contactMethod"
-                        className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
+                        className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5"
                       >
-                        Preferred Contact Mode <span className="text-rose-600">*</span>
+                        Preferred Contact Mode <span className="text-rose-600 dark:text-rose-400">*</span>
                       </label>
                       <select
                         id="contactMethod"
@@ -399,7 +409,7 @@ export default function ContactPage() {
                             contactMethod: e.target.value as "phone" | "email" | "whatsapp"
                           })
                         }
-                        className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors"
                       >
                         <option value="phone">Telephone Call</option>
                         <option value="whatsapp">WhatsApp Message</option>
@@ -410,10 +420,10 @@ export default function ContactPage() {
                     <div>
                       <label
                         htmlFor="contactDetail"
-                        className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
+                        className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5"
                       >
                         {formData.contactMethod === "email" ? "Email Address" : "Phone / Mobile Number"}{" "}
-                        <span className="text-rose-600">*</span>
+                        <span className="text-rose-600 dark:text-rose-400">*</span>
                       </label>
                       <input
                         type={formData.contactMethod === "email" ? "email" : "tel"}
@@ -425,12 +435,14 @@ export default function ContactPage() {
                         aria-required="true"
                         aria-invalid={!!errors.contactDetail}
                         aria-describedby={errors.contactDetail ? "contactDetail-error" : undefined}
-                        className={`w-full px-4 py-3 rounded-xl border text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 ${
-                          errors.contactDetail ? "border-rose-400 bg-rose-50/30" : "border-slate-300 bg-white"
+                        className={`w-full px-4 py-3 rounded-xl border text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors ${
+                          errors.contactDetail
+                            ? "border-rose-400 dark:border-rose-600 bg-rose-50/30 dark:bg-rose-950/30"
+                            : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
                         }`}
                       />
                       {errors.contactDetail && (
-                        <p id="contactDetail-error" className="text-xs text-rose-600 mt-1">
+                        <p id="contactDetail-error" className="text-xs text-rose-600 dark:text-rose-400 mt-1">
                           {errors.contactDetail}
                         </p>
                       )}
@@ -441,9 +453,9 @@ export default function ContactPage() {
                   <div>
                     <label
                       htmlFor="preferredTiming"
-                      className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
+                      className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5"
                     >
-                      Preferred Consultation Slot <span className="text-rose-600">*</span>
+                      Preferred Consultation Slot <span className="text-rose-600 dark:text-rose-400">*</span>
                     </label>
                     <select
                       id="preferredTiming"
@@ -453,19 +465,19 @@ export default function ContactPage() {
                       aria-required="true"
                       aria-invalid={!!errors.preferredTiming}
                       aria-describedby={errors.preferredTiming ? "preferredTiming-error" : undefined}
-                      className={`w-full px-4 py-3 rounded-xl border text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500 ${
-                        errors.preferredTiming ? "border-rose-400 bg-rose-50/30" : "border-slate-300 bg-white"
+                      className={`w-full px-4 py-3 rounded-xl border text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors ${
+                        errors.preferredTiming
+                          ? "border-rose-400 dark:border-rose-600 bg-rose-50/30 dark:bg-rose-950/30"
+                          : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
                       }`}
                     >
                       <option value="">Select a preferred time window</option>
-                      <option value="Morning: 09:30 AM – 11:30 AM">Morning: 09:30 AM – 11:30 AM</option>
-                      <option value="Afternoon: 11:30 AM – 01:00 PM">Afternoon: 11:30 AM – 01:00 PM</option>
-                      <option value="Evening: 04:30 PM – 06:30 PM">Evening: 04:30 PM – 06:30 PM</option>
-                      <option value="Late Evening: 06:30 PM – 08:30 PM">Late Evening: 06:30 PM – 08:30 PM</option>
-                      <option value="Sunday by Prior Appointment">Sunday (Prior Appointment Only)</option>
+                      <option value="Morning Consultation: 10:00 AM – 01:00 PM">Morning Consultation: 10:00 AM – 01:00 PM (Mon – Sun)</option>
+                      <option value="Evening Consultation: 04:00 PM – 08:00 PM">Evening Consultation: 04:00 PM – 08:00 PM (Mon – Sun)</option>
+                      <option value="Weekend Appointment (Saturday / Sunday)">Weekend Appointment (Saturday / Sunday)</option>
                     </select>
                     {errors.preferredTiming && (
-                      <p id="preferredTiming-error" className="text-xs text-rose-600 mt-1">
+                      <p id="preferredTiming-error" className="text-xs text-rose-600 dark:text-rose-400 mt-1">
                         {errors.preferredTiming}
                       </p>
                     )}
@@ -475,9 +487,9 @@ export default function ContactPage() {
                   <div>
                     <label
                       htmlFor="enquiryMessage"
-                      className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1.5"
+                      className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5"
                     >
-                      General Enquiry or Reason for Consultation <span className="text-rose-600">*</span>
+                      General Enquiry or Reason for Consultation <span className="text-rose-600 dark:text-rose-400">*</span>
                     </label>
                     <textarea
                       id="enquiryMessage"
@@ -489,12 +501,14 @@ export default function ContactPage() {
                       aria-required="true"
                       aria-invalid={!!errors.enquiryMessage}
                       aria-describedby={errors.enquiryMessage ? "enquiryMessage-error" : undefined}
-                      className={`w-full px-4 py-3 rounded-xl border text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 ${
-                        errors.enquiryMessage ? "border-rose-400 bg-rose-50/30" : "border-slate-300 bg-white"
+                      className={`w-full px-4 py-3 rounded-xl border text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-colors ${
+                        errors.enquiryMessage
+                          ? "border-rose-400 dark:border-rose-600 bg-rose-50/30 dark:bg-rose-950/30"
+                          : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900"
                       }`}
                     />
                     {errors.enquiryMessage && (
-                      <p id="enquiryMessage-error" className="text-xs text-rose-600 mt-1">
+                      <p id="enquiryMessage-error" className="text-xs text-rose-600 dark:text-rose-400 mt-1">
                         {errors.enquiryMessage}
                       </p>
                     )}
@@ -509,7 +523,7 @@ export default function ContactPage() {
                       <Send className="w-4 h-4" aria-hidden="true" />
                       <span>Submit Appointment Enquiry</span>
                     </button>
-                    <p className="text-[11px] text-slate-400 mt-2">
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-2">
                       * Frontend prototype with client-side validation. Does not transmit medical data.
                     </p>
                   </div>
