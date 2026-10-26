@@ -62,7 +62,7 @@ export function FeaturedServices() {
                       className="object-cover group-hover:scale-102 transition-transform duration-500"
                     />
                     <div className="absolute top-3 left-3">
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-white/95 dark:bg-slate-900/90 backdrop-blur-xs text-slate-800 dark:text-slate-200 shadow-xs border border-slate-200/80 dark:border-slate-700">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-slate-200 shadow-xs border border-slate-200/80 dark:border-slate-700">
                         {service.category}
                       </span>
                     </div>

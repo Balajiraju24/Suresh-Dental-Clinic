@@ -60,6 +60,14 @@
       scroll-behavior: auto !important;
     }
   }
+
+  /* WebKit / Safari rendering & compositing stabilization */
+  header {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
 }
 
 /* Custom subtle container utility */

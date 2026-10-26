@@ -9,14 +9,14 @@ import { clinicConfig } from "@/config/clinic";
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-sky-50/60 via-white to-slate-50/50 dark:from-slate-950 dark:via-slate-900/90 dark:to-slate-950 py-12 sm:py-16 lg:py-24 border-b border-slate-100 dark:border-slate-800 transition-colors duration-200">
-      {/* Background Decorative Circles */}
+    <section className="relative overflow-hidden isolate bg-gradient-to-b from-sky-50/60 via-white to-slate-50/50 dark:from-slate-950 dark:via-slate-900/90 dark:to-slate-950 py-12 sm:py-16 lg:py-24 border-b border-slate-100 dark:border-slate-800 transition-colors duration-200">
+      {/* Background Decorative Gradient Orbs (using GPU-safe radial gradients to avoid WebKit blur clipping bugs) */}
       <div
-        className="absolute top-0 right-1/4 -z-10 w-96 h-96 bg-teal-100/40 dark:bg-teal-900/20 rounded-full blur-3xl pointer-events-none"
+        className="absolute top-0 right-1/4 -z-10 w-96 h-96 rounded-full bg-[radial-gradient(circle,rgba(204,251,241,0.5)_0%,rgba(204,251,241,0)_70%)] dark:bg-[radial-gradient(circle,rgba(19,78,74,0.3)_0%,rgba(19,78,74,0)_70%)] pointer-events-none"
         aria-hidden="true"
       />
       <div
-        className="absolute bottom-0 left-10 -z-10 w-80 h-80 bg-sky-100/50 dark:bg-sky-900/20 rounded-full blur-3xl pointer-events-none"
+        className="absolute bottom-0 left-10 -z-10 w-80 h-80 rounded-full bg-[radial-gradient(circle,rgba(224,242,254,0.6)_0%,rgba(224,242,254,0)_70%)] dark:bg-[radial-gradient(circle,rgba(12,74,110,0.3)_0%,rgba(12,74,110,0)_70%)] pointer-events-none"
         aria-hidden="true"
       />
 
@@ -122,7 +122,7 @@ export function Hero() {
           >
             <div className="relative mx-auto max-w-lg lg:max-w-none">
               {/* Outer decorative ring */}
-              <div className="absolute -inset-2 bg-gradient-to-tr from-sky-500/20 via-teal-500/20 to-sky-300/20 rounded-3xl blur-sm -z-10" />
+              <div className="absolute -inset-2 bg-gradient-to-tr from-sky-500/20 via-teal-500/20 to-sky-300/20 rounded-3xl pointer-events-none -z-10" />
 
               {/* Main Image Frame */}
               <div className="relative rounded-2xl overflow-hidden border border-slate-200/90 dark:border-slate-800 shadow-xl bg-slate-900 aspect-[4/3] sm:aspect-[16/11]">
@@ -142,14 +142,14 @@ export function Hero() {
                   <span className="font-medium drop-shadow-sm">
                     Tranquil Clinical Environment
                   </span>
-                  <span className="text-[11px] text-slate-300 bg-slate-950/60 backdrop-blur-xs px-2 py-0.5 rounded">
+                  <span className="text-[11px] text-slate-300 bg-slate-950/75 px-2 py-0.5 rounded">
                     R.A. Puram, Chennai
                   </span>
                 </div>
               </div>
 
               {/* Floating Verified Focus Card */}
-              <div className="absolute -bottom-6 -left-4 sm:-left-6 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg max-w-[240px] sm:max-w-[270px]">
+              <div className="absolute -bottom-6 -left-4 sm:-left-6 bg-white/95 dark:bg-slate-900/95 p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-lg max-w-[240px] sm:max-w-[270px]">
                 <div className="flex items-start gap-2.5">
                   <div className="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 flex items-center justify-center flex-shrink-0 font-bold text-xs">
                     MDS

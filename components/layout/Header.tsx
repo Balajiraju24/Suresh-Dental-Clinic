@@ -41,7 +41,7 @@ export function Header() {
   return (
     <>
       {/* Top Utility Bar */}
-      <div className="bg-slate-900 text-slate-300 text-xs py-2 hidden md:block border-b border-slate-800">
+      <div className="relative z-30 bg-slate-900 text-slate-300 text-xs py-2 hidden md:block border-b border-slate-800">
         <div className="clinic-container flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-1.5 text-slate-300">
@@ -72,11 +72,17 @@ export function Header() {
 
       {/* Main Header Bar */}
       <header
-        className={`sticky top-0 z-40 w-full transition-all duration-200 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md ${
+        className={`sticky top-0 z-40 w-full isolate transform-gpu transition-[padding,box-shadow,border-color,background-color] duration-200 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md ${
           isScrolled
             ? "shadow-sm border-b border-slate-200/80 dark:border-slate-800 py-3"
             : "border-b border-slate-100 dark:border-slate-800/80 py-4 sm:py-5"
         }`}
+        style={{
+          WebkitBackdropFilter: "blur(12px)",
+          backdropFilter: "blur(12px)",
+          WebkitTransform: "translate3d(0, 0, 0)",
+          transform: "translate3d(0, 0, 0)",
+        }}
       >
         <div className="clinic-container flex items-center justify-between gap-4">
           {/* Clinic Wordmark Logo */}

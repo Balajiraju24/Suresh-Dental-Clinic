@@ -7,14 +7,14 @@ export function ContactCTA() {
   const { contact, location } = clinicConfig;
 
   return (
-    <section className="py-16 sm:py-20 bg-gradient-to-br from-slate-900 via-slate-900 to-sky-950 text-white relative overflow-hidden">
+    <section className="py-16 sm:py-20 bg-gradient-to-br from-slate-900 via-slate-900 to-sky-950 text-white relative overflow-hidden isolate">
       {/* Decorative background glow */}
       <div
-        className="absolute -top-24 -right-24 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"
+        className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-[radial-gradient(circle,rgba(20,184,166,0.15)_0%,rgba(20,184,166,0)_70%)] pointer-events-none"
         aria-hidden="true"
       />
       <div
-        className="absolute -bottom-24 -left-24 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"
+        className="absolute -bottom-24 -left-24 w-96 h-96 rounded-full bg-[radial-gradient(circle,rgba(14,165,233,0.15)_0%,rgba(14,165,233,0)_70%)] pointer-events-none"
         aria-hidden="true"
       />
 

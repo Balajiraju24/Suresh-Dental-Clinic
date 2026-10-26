@@ -21,7 +21,7 @@ export function IntroSection() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent pointer-events-none" />
               <div className="absolute bottom-3 left-4 right-4 text-white text-xs">
-                <span className="font-medium bg-slate-900/70 backdrop-blur-xs px-2.5 py-1 rounded-md">
+                <span className="font-medium bg-slate-900/85 px-2.5 py-1 rounded-md">
                   Consultation &amp; Diagnostic Room
                 </span>
               </div>
