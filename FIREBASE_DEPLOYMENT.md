@@ -98,3 +98,16 @@ Once the clinic confirms their custom domain (e.g. `sureshdental.clinic`):
 2. Enter the domain and copy the DNS `A` / `TXT` records.
 3. Update DNS at your domain registrar.
 4. Firebase will automatically issue a free SSL certificate.
+
+---
+
+## 5. Troubleshooting: IAM & Service Usage Permissions
+
+If your GitHub Action deployment encounters HTTP 403 `Permission denied to get service [firebasehosting.googleapis.com]` with `serviceusage.services.get`:
+
+1. Open [Google Cloud IAM](https://console.cloud.google.com/iam-admin/iam?project=401764930609).
+2. Edit the service account used for GitHub Actions and ensure these roles are assigned:
+   - **Service Usage Consumer** (`roles/serviceusage.serviceUsageConsumer`)
+   - **Firebase Hosting Admin** (`roles/firebasehosting.admin`)
+3. Ensure the [Firebase Hosting API](https://console.cloud.google.com/apis/library/firebasehosting.googleapis.com?project=401764930609) is enabled.
+
