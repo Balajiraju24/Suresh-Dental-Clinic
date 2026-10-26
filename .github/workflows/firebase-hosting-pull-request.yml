@@ -1,0 +1,44 @@
+name: Deploy to Firebase Hosting on PR Preview
+
+on:
+  pull_request:
+    branches:
+      - main
+      - master
+
+permissions:
+  checks: write
+  contents: read
+  deployments: write
+  pull-requests: write
+
+jobs:
+  build_and_preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Next.js Static Export
+        run: pnpm build
+
+      - name: Deploy to Firebase Hosting (Preview Channel)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: "${{ secrets.GITHUB_TOKEN }}"
+          firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_SURESH_DENTAL_CLINIC }}"
+          projectId: "${{ secrets.FIREBASE_PROJECT_ID || 'suresh-dental-clinic' }}"
