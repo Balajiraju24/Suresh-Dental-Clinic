@@ -131,8 +131,8 @@ export const clinicConfig: ClinicConfig = {
       {
         id: "exact-address",
         field: "Clinic Street Address & Pincode",
-        status: "placeholder_used",
-        notes: "Initial area noted as Raja Annamalaipuram (R.A. Puram), Chennai. Exact door number, street, and postal code required."
+        status: "verified",
+        notes: "Verified via Google listing: Venkatraman St, Sector 1, Raja Annamalaipuram, Chennai, Tamil Nadu 600028, India."
       },
       {
         id: "contact-phone",
@@ -169,15 +169,15 @@ export const clinicConfig: ClinicConfig = {
 
   location: {
     locality: "Raja Annamalaipuram (R.A. Puram)",
-    suburb: "R.A. Puram",
+    suburb: "Sector 1, R.A. Puram",
     city: "Chennai",
     state: "Tamil Nadu",
     country: "India",
-    postalCode: null, // Pending verification (e.g. 600028)
-    streetAddress: null, // Pending verification
-    fullAddressDisplay: "Raja Annamalaipuram (R.A. Puram), Chennai, Tamil Nadu, India",
-    googleMapsDirectionsUrl: null, // Will be set to official Google Maps pin once clinic confirms address
-    landmarksNearby: ["Near R.A. Puram Main Road", "South Chennai"]
+    postalCode: "600028",
+    streetAddress: "Venkatraman St, Sector 1",
+    fullAddressDisplay: "Venkatraman St, Sector 1, Raja Annamalaipuram, Chennai, Tamil Nadu 600028, India",
+    googleMapsDirectionsUrl: "https://www.google.com/maps/search/?api=1&query=Dr.+R.+Suresh+Dental+Clinic+Venkatraman+St+Sector+1+Raja+Annamalaipuram+Chennai+600028",
+    landmarksNearby: ["Venkatraman Street", "Sector 1 R.A. Puram", "Near R.A. Puram Main Road"]
   },
 
   contact: {

@@ -90,8 +90,10 @@ export default function RootLayout({
     url: "https://sureshdental.clinic",
     address: {
       "@type": "PostalAddress",
+      streetAddress: clinicConfig.location.streetAddress || undefined,
       addressLocality: clinicConfig.location.locality,
       addressRegion: clinicConfig.location.state,
+      postalCode: clinicConfig.location.postalCode || undefined,
       addressCountry: clinicConfig.location.country,
     },
     geo: {

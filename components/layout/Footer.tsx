@@ -94,12 +94,17 @@ export function Footer() {
             <div className="text-xs text-slate-400 space-y-2.5">
               <div className="flex items-start gap-2">
                 <MapPin className="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                <span>
-                  {clinicConfig.location.fullAddressDisplay}
-                  <span className="block text-[11px] text-amber-400/90 mt-0.5">
-                    (Exact street &amp; door number pending verification)
+                <div>
+                  <span className="text-slate-300 font-medium block">
+                    {clinicConfig.location.streetAddress}
                   </span>
-                </span>
+                  <span>
+                    {clinicConfig.location.locality}, {clinicConfig.location.city} – {clinicConfig.location.postalCode}
+                  </span>
+                  <span className="block text-[11px] text-teal-400/90 mt-0.5">
+                    (Verified Clinic Location)
+                  </span>
+                </div>
               </div>
 
               <div className="flex items-start gap-2">
