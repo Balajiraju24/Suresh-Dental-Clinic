@@ -56,11 +56,14 @@ jobs:
           projectId: "${{ secrets.FIREBASE_PROJECT_ID || 'suresh-dental-clinic' }}"
 
       - name: Deploy Firestore Rules & Indexes
-        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_SURESH_DENTAL_CLINIC }}
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT || secrets.FIREBASE_SERVICE_ACCOUNT_SURESH_DENTAL_CLINIC }}
           PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID || 'suresh-dental-clinic' }}
         run: |
-          echo "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/service-account.json"
-          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/service-account.json"
-          npx --yes firebase-tools deploy --only firestore --project "$PROJECT_ID"
+          if [ -n "$FIREBASE_SERVICE_ACCOUNT" ]; then
+            echo "$FIREBASE_SERVICE_ACCOUNT" > "$RUNNER_TEMP/service-account.json"
+            export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/service-account.json"
+            npx --yes firebase-tools deploy --only firestore --project "$PROJECT_ID"
+          else
+            echo "Warning: Neither FIREBASE_SERVICE_ACCOUNT nor FIREBASE_SERVICE_ACCOUNT_SURESH_DENTAL_CLINIC is configured. Skipping Firestore deploy."
+          fi
