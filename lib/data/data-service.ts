@@ -49,6 +49,18 @@ const STORAGE_KEYS = {
   AUDIT_LOGS: "sdc_portal_audit_logs",
 };
 
+/**
+ * Ensures Firestore operations never block the user interface if network stalls or is slow.
+ */
+function withTimeout<T>(promise: Promise<T>, ms = 2500): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`Firestore timed out after ${ms}ms`)), ms)
+    ),
+  ]);
+}
+
 // In-memory fallback cache for Node test and server environments
 const memoryCache: Record<string, unknown[]> = {};
 
@@ -124,7 +136,7 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
   if (isFirebaseConfigured() && db) {
     try {
       const q = query(collection(db, "audit_logs"), orderBy("timestamp", "desc"), limit(100));
-      const snap = await getDocs(q);
+      const snap = await withTimeout(getDocs(q), 2500);
       if (!snap.empty) {
         return snap.docs.map((d) => d.data() as AuditLog);
       }
@@ -142,7 +154,7 @@ export async function getAppointments(): Promise<Appointment[]> {
   if (isFirebaseConfigured() && db) {
     try {
       const q = query(collection(db, "appointments"), orderBy("date", "desc"));
-      const snap = await getDocs(q);
+      const snap = await withTimeout(getDocs(q), 2500);
       if (!snap.empty) {
         return snap.docs.map((d) => d.data() as Appointment);
       }
@@ -227,7 +239,7 @@ export async function getPatients(): Promise<Patient[]> {
   if (isFirebaseConfigured() && db) {
     try {
       const q = query(collection(db, "patients"), orderBy("registeredAt", "desc"));
-      const snap = await getDocs(q);
+      const snap = await withTimeout(getDocs(q), 2500);
       if (!snap.empty) {
         return snap.docs.map((d) => d.data() as Patient);
       }
@@ -357,7 +369,7 @@ export async function getDentalServices(): Promise<DentalService[]> {
   if (isFirebaseConfigured() && db) {
     try {
       const q = query(collection(db, "services"), orderBy("code", "asc"));
-      const snap = await getDocs(q);
+      const snap = await withTimeout(getDocs(q), 2500);
       if (!snap.empty) {
         return snap.docs.map((d) => d.data() as DentalService);
       }
@@ -434,9 +446,11 @@ export async function getInvoices(): Promise<Invoice[]> {
   if (isFirebaseConfigured() && db) {
     try {
       const q = query(collection(db, "invoices"), orderBy("issueDate", "desc"));
-      const snap = await getDocs(q);
+      const snap = await withTimeout(getDocs(q), 2500);
       if (!snap.empty) {
-        return snap.docs.map((d) => d.data() as Invoice);
+        const firestoreList = snap.docs.map((d) => d.data() as Invoice);
+        setLocalData(STORAGE_KEYS.INVOICES, firestoreList);
+        return firestoreList;
       }
     } catch (e) {
       console.warn("Firestore getInvoices fallback:", e);
@@ -449,8 +463,8 @@ export async function createInvoice(
   data: Omit<Invoice, "id" | "invoiceNumber" | "paidAmount" | "balanceAmount" | "createdAt" | "updatedAt">,
   actor: { uid: string; displayName: string; role: StaffRole }
 ): Promise<Invoice> {
-  const all = await getInvoices();
-  const nextNum = 150 + all.length + 1;
+  const invoicesList = getLocalData<Invoice>(STORAGE_KEYS.INVOICES, INITIAL_INVOICES);
+  const nextNum = 150 + invoicesList.length + 1;
   const newInvoice: Invoice = {
     ...data,
     id: `inv-${Date.now()}`,
@@ -461,33 +475,58 @@ export async function createInvoice(
     updatedAt: new Date().toISOString(),
   };
 
-  if (isFirebaseConfigured() && db) {
-    try {
-      await setDoc(doc(db, "invoices", newInvoice.id), newInvoice);
-    } catch (e) {
-      console.warn("Firestore createInvoice fallback:", e);
-    }
-  }
+  // 1. Persist immediately to local cache
+  invoicesList.unshift(newInvoice);
+  setLocalData(STORAGE_KEYS.INVOICES, invoicesList);
 
-  const list = getLocalData<Invoice>(STORAGE_KEYS.INVOICES, INITIAL_INVOICES);
-  list.unshift(newInvoice);
-  setLocalData(STORAGE_KEYS.INVOICES, list);
-
-  // Update patient outstanding balance
-  const patient = await getPatientById(newInvoice.patientId);
-  if (patient) {
-    await updatePatient(
-      patient.id,
-      { outstandingBalance: (patient.outstandingBalance || 0) + newInvoice.totalAmount },
-      actor
+  // 2. Update patient balance locally
+  const patients = getLocalData<Patient>(STORAGE_KEYS.PATIENTS, INITIAL_PATIENTS);
+  const targetPatient = patients.find((p) => p.id === newInvoice.patientId);
+  let newPatientBalance = newInvoice.totalAmount;
+  if (targetPatient) {
+    newPatientBalance = (targetPatient.outstandingBalance || 0) + newInvoice.totalAmount;
+    const updatedPatients = patients.map((p) =>
+      p.id === targetPatient.id ? { ...p, outstandingBalance: newPatientBalance, updatedAt: new Date().toISOString() } : p
     );
+    setLocalData(STORAGE_KEYS.PATIENTS, updatedPatients);
   }
 
-  await logAuditEvent(actor, "invoice.create", "invoice", newInvoice.id, {
-    invoiceNumber: newInvoice.invoiceNumber,
-    patientName: newInvoice.patientName,
-    totalAmount: newInvoice.totalAmount,
-  });
+  // 3. Record audit log locally
+  const auditLogs = getLocalData<AuditLog>(STORAGE_KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS);
+  const auditEntry: AuditLog = {
+    id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    timestamp: new Date().toISOString(),
+    actorUid: actor.uid,
+    actorName: actor.displayName,
+    actorRole: actor.role,
+    action: "invoice.create",
+    resourceType: "invoice",
+    resourceId: newInvoice.id,
+    details: {
+      invoiceNumber: newInvoice.invoiceNumber,
+      patientName: newInvoice.patientName,
+      totalAmount: newInvoice.totalAmount,
+    },
+  };
+  auditLogs.unshift(auditEntry);
+  setLocalData(STORAGE_KEYS.AUDIT_LOGS, auditLogs.slice(0, 500));
+
+  // 4. Non-blocking parallel background sync to Firestore
+  if (isFirebaseConfigured() && db) {
+    Promise.allSettled([
+      withTimeout(setDoc(doc(db, "invoices", newInvoice.id), newInvoice), 3000),
+      targetPatient
+        ? withTimeout(
+            updateDoc(doc(db, "patients", targetPatient.id), {
+              outstandingBalance: newPatientBalance,
+              updatedAt: new Date().toISOString(),
+            }),
+            3000
+          )
+        : Promise.resolve(),
+      withTimeout(setDoc(doc(db, "audit_logs", auditEntry.id), auditEntry), 3000),
+    ]).catch((err) => console.warn("Firestore background invoice sync note:", err));
+  }
 
   return newInvoice;
 }
@@ -499,9 +538,11 @@ export async function getPayments(): Promise<PaymentReceipt[]> {
   if (isFirebaseConfigured() && db) {
     try {
       const q = query(collection(db, "payments"), orderBy("paymentDate", "desc"));
-      const snap = await getDocs(q);
+      const snap = await withTimeout(getDocs(q), 2500);
       if (!snap.empty) {
-        return snap.docs.map((d) => d.data() as PaymentReceipt);
+        const firestoreList = snap.docs.map((d) => d.data() as PaymentReceipt);
+        setLocalData(STORAGE_KEYS.PAYMENTS, firestoreList);
+        return firestoreList;
       }
     } catch (e) {
       console.warn("Firestore getPayments fallback:", e);
@@ -514,8 +555,8 @@ export async function recordPayment(
   paymentData: Omit<PaymentReceipt, "id" | "receiptNumber" | "createdAt">,
   actor: { uid: string; displayName: string; role: StaffRole }
 ): Promise<PaymentReceipt> {
-  const allPayments = await getPayments();
-  const nextNum = 110 + allPayments.length + 1;
+  const paymentsList = getLocalData<PaymentReceipt>(STORAGE_KEYS.PAYMENTS, INITIAL_PAYMENTS);
+  const nextNum = 110 + paymentsList.length + 1;
   const newPayment: PaymentReceipt = {
     ...paymentData,
     id: `rec-${Date.now()}`,
@@ -523,40 +564,25 @@ export async function recordPayment(
     createdAt: new Date().toISOString(),
   };
 
-  if (isFirebaseConfigured() && db) {
-    try {
-      await setDoc(doc(db, "payments", newPayment.id), newPayment);
-    } catch (e) {
-      console.warn("Firestore recordPayment fallback:", e);
-    }
-  }
-
-  const paymentsList = getLocalData<PaymentReceipt>(STORAGE_KEYS.PAYMENTS, INITIAL_PAYMENTS);
+  // 1. Immediately persist payment to local cache
   paymentsList.unshift(newPayment);
   setLocalData(STORAGE_KEYS.PAYMENTS, paymentsList);
 
-  // Reconcile associated invoice
-  const invoices = await getInvoices();
+  // 2. Reconcile associated invoice immediately
+  const invoices = getLocalData<Invoice>(STORAGE_KEYS.INVOICES, INITIAL_INVOICES);
   const targetInvoice = invoices.find((inv) => inv.id === newPayment.invoiceId);
+  let invUpdates: Partial<Invoice> | null = null;
   if (targetInvoice) {
     const updatedPaid = targetInvoice.paidAmount + newPayment.amount;
     const updatedBalance = Math.max(0, targetInvoice.totalAmount - updatedPaid);
     const newStatus = updatedBalance === 0 ? "paid" : "partially_paid";
 
-    const invUpdates: Partial<Invoice> = {
+    invUpdates = {
       paidAmount: updatedPaid,
       balanceAmount: updatedBalance,
       status: newStatus,
       updatedAt: new Date().toISOString(),
     };
-
-    if (isFirebaseConfigured() && db) {
-      try {
-        await updateDoc(doc(db, "invoices", targetInvoice.id), invUpdates);
-      } catch (e) {
-        console.warn("Firestore invoice update fallback:", e);
-      }
-    }
 
     const updatedInvoices = invoices.map((inv) =>
       inv.id === targetInvoice.id ? { ...inv, ...invUpdates } : inv
@@ -564,24 +590,59 @@ export async function recordPayment(
     setLocalData(STORAGE_KEYS.INVOICES, updatedInvoices);
   }
 
-  // Deduct from patient's outstanding balance
-  const patient = await getPatientById(newPayment.patientId);
-  if (patient) {
-    const currentBalance = patient.outstandingBalance || 0;
-    await updatePatient(
-      patient.id,
-      { outstandingBalance: Math.max(0, currentBalance - newPayment.amount) },
-      actor
+  // 3. Deduct from patient's outstanding balance immediately
+  const patients = getLocalData<Patient>(STORAGE_KEYS.PATIENTS, INITIAL_PATIENTS);
+  const targetPatient = patients.find((p) => p.id === newPayment.patientId);
+  let newPatientBalance = 0;
+  if (targetPatient) {
+    newPatientBalance = Math.max(0, (targetPatient.outstandingBalance || 0) - newPayment.amount);
+    const updatedPatients = patients.map((p) =>
+      p.id === targetPatient.id ? { ...p, outstandingBalance: newPatientBalance, updatedAt: new Date().toISOString() } : p
     );
+    setLocalData(STORAGE_KEYS.PATIENTS, updatedPatients);
   }
 
-  await logAuditEvent(actor, "payment.record", "payment", newPayment.id, {
-    receiptNumber: newPayment.receiptNumber,
-    amount: newPayment.amount,
-    invoiceId: newPayment.invoiceId,
-    method: newPayment.paymentMethod,
-    reference: newPayment.transactionReference,
-  });
+  // 4. Record audit log locally immediately
+  const auditLogs = getLocalData<AuditLog>(STORAGE_KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS);
+  const auditEntry: AuditLog = {
+    id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    timestamp: new Date().toISOString(),
+    actorUid: actor.uid,
+    actorName: actor.displayName,
+    actorRole: actor.role,
+    action: "payment.record",
+    resourceType: "payment",
+    resourceId: newPayment.id,
+    details: {
+      receiptNumber: newPayment.receiptNumber,
+      amount: newPayment.amount,
+      invoiceId: newPayment.invoiceId,
+      method: newPayment.paymentMethod,
+      reference: newPayment.transactionReference,
+    },
+  };
+  auditLogs.unshift(auditEntry);
+  setLocalData(STORAGE_KEYS.AUDIT_LOGS, auditLogs.slice(0, 500));
+
+  // 5. Non-blocking parallel background sync to Cloud Firestore
+  if (isFirebaseConfigured() && db) {
+    Promise.allSettled([
+      withTimeout(setDoc(doc(db, "payments", newPayment.id), newPayment), 3000),
+      targetInvoice && invUpdates
+        ? withTimeout(updateDoc(doc(db, "invoices", targetInvoice.id), invUpdates), 3000)
+        : Promise.resolve(),
+      targetPatient
+        ? withTimeout(
+            updateDoc(doc(db, "patients", targetPatient.id), {
+              outstandingBalance: newPatientBalance,
+              updatedAt: new Date().toISOString(),
+            }),
+            3000
+          )
+        : Promise.resolve(),
+      withTimeout(setDoc(doc(db, "audit_logs", auditEntry.id), auditEntry), 3000),
+    ]).catch((err) => console.warn("Firestore background payment sync note:", err));
+  }
 
   return newPayment;
 }
@@ -593,7 +654,7 @@ export async function getStaffMembers(): Promise<StaffUser[]> {
   if (isFirebaseConfigured() && db) {
     try {
       const q = query(collection(db, "staff"), orderBy("createdAt", "asc"));
-      const snap = await getDocs(q);
+      const snap = await withTimeout(getDocs(q), 2500);
       if (!snap.empty) {
         return snap.docs.map((d) => d.data() as StaffUser);
       }

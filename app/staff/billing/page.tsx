@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   Clock,
   Printer,
+  Download,
   X,
   Building,
   User,
@@ -28,6 +29,11 @@ import {
   AlertCircle,
   FileCheck,
 } from "lucide-react";
+import {
+  generateReceiptPDF,
+  generateInvoicePDF,
+  printPDFDocument,
+} from "@/lib/utils/pdf-generator";
 
 export default function StaffBillingPage() {
   const { currentUser, checkPermission } = useAuth();
@@ -200,7 +206,7 @@ export default function StaffBillingPage() {
         total: item.quantity * item.unitPrice,
       }));
 
-      await createInvoice(
+      const created = await createInvoice(
         {
           patientId: patient.id,
           patientName: `${patient.firstName} ${patient.lastName}`,
@@ -223,10 +229,11 @@ export default function StaffBillingPage() {
         }
       );
 
+      setInvoices((prev) => [created, ...prev]);
       setIsInvoiceModalOpen(false);
       setInvDiscount(0);
       setInvNotes("");
-      await loadData();
+      loadData();
     } catch (err) {
       console.error("Create invoice error:", err);
     } finally {
@@ -261,13 +268,30 @@ export default function StaffBillingPage() {
         }
       );
 
+      // Optimistic instant state update for immediate UI feedback
+      setPayments((prev) => [newReceipt, ...prev]);
+      setInvoices((prev) =>
+        prev.map((inv) => {
+          if (inv.id === payInvoice.id) {
+            const updatedPaid = inv.paidAmount + newReceipt.amount;
+            const updatedBal = Math.max(0, inv.totalAmount - updatedPaid);
+            return {
+              ...inv,
+              paidAmount: updatedPaid,
+              balanceAmount: updatedBal,
+              status: updatedBal === 0 ? "paid" : "partially_paid",
+            };
+          }
+          return inv;
+        })
+      );
+
       setIsPayModalOpen(false);
       setPayAmount(0);
       setPayReference("");
       setPayNotes("");
-      await loadData();
-      // Show receipt
       setSelectedReceipt(newReceipt);
+      loadData();
     } catch (err) {
       console.error("Payment record error:", err);
     } finally {
@@ -459,10 +483,37 @@ export default function StaffBillingPage() {
                       <button
                         type="button"
                         onClick={() => setSelectedInvoiceForPrint(inv)}
-                        className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-                        title="Print Invoice"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-medium cursor-pointer"
+                        title="View Tax Invoice Details"
                       >
-                        <Printer className="w-4 h-4" />
+                        <span>View</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const matchedPt = patients.find((p) => p.id === inv.patientId);
+                          const doc = generateInvoicePDF(inv, matchedPt);
+                          printPDFDocument(doc);
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-lg text-xs font-semibold cursor-pointer"
+                        title="Print A4 Dental Invoice on Laser Printer"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        <span>Print A4</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const matchedPt = patients.find((p) => p.id === inv.patientId);
+                          const doc = generateInvoicePDF(inv, matchedPt);
+                          doc.save(`Invoice_${inv.invoiceNumber}.pdf`);
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                        title="Download A4 Invoice PDF"
+                      >
+                        <Download className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -524,10 +575,41 @@ export default function StaffBillingPage() {
                       <button
                         type="button"
                         onClick={() => setSelectedReceipt(pay)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-medium cursor-pointer"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-xs font-medium cursor-pointer"
+                        title="View Receipt Details"
+                      >
+                        <span>View</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const matchedInv = invoices.find(
+                            (inv) => inv.id === pay.invoiceId || inv.invoiceNumber === pay.invoiceNumber
+                          );
+                          const doc = generateReceiptPDF(pay, matchedInv);
+                          printPDFDocument(doc);
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 rounded-lg text-xs font-semibold cursor-pointer"
+                        title="Print single-sheet A4 receipt directly on laser printer"
                       >
                         <Printer className="w-3.5 h-3.5" />
-                        <span>View Receipt</span>
+                        <span>Print A4</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const matchedInv = invoices.find(
+                            (inv) => inv.id === pay.invoiceId || inv.invoiceNumber === pay.invoiceNumber
+                          );
+                          const doc = generateReceiptPDF(pay, matchedInv);
+                          doc.save(`Receipt_${pay.receiptNumber}.pdf`);
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                        title="Download A4 PDF"
+                      >
+                        <Download className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -887,22 +969,46 @@ export default function StaffBillingPage() {
                 Collected by: {selectedReceipt.receivedByName} &bull; Computer generated receipt
               </div>
 
-              <div className="pt-2 flex items-center justify-between">
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2">
                 <button
                   type="button"
                   onClick={() => setSelectedReceipt(null)}
-                  className="px-4 py-2 border rounded-xl font-medium"
+                  className="w-full sm:w-auto px-4 py-2 border rounded-xl font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
                 >
                   Close
                 </button>
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-4 py-2 bg-sky-700 text-white rounded-xl font-semibold inline-flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>Print Receipt</span>
-                </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const matchedInv = invoices.find(
+                        (inv) => inv.id === selectedReceipt.invoiceId || inv.invoiceNumber === selectedReceipt.invoiceNumber
+                      );
+                      const doc = generateReceiptPDF(selectedReceipt, matchedInv);
+                      doc.save(`Receipt_${selectedReceipt.receiptNumber}.pdf`);
+                    }}
+                    className="px-3.5 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl font-semibold inline-flex items-center gap-1.5 cursor-pointer text-xs"
+                    title="Download official A4 PDF document"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download PDF</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const matchedInv = invoices.find(
+                        (inv) => inv.id === selectedReceipt.invoiceId || inv.invoiceNumber === selectedReceipt.invoiceNumber
+                      );
+                      const doc = generateReceiptPDF(selectedReceipt, matchedInv);
+                      printPDFDocument(doc);
+                    }}
+                    className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-sm text-xs"
+                    title="Send clean A4 receipt directly to laser printer without website chrome"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>Print A4 Receipt (Laser)</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -993,22 +1099,42 @@ export default function StaffBillingPage() {
                 )}
               </div>
 
-              <div className="pt-4 flex items-center justify-between border-t border-slate-200">
+              <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setSelectedInvoiceForPrint(null)}
-                  className="px-4 py-2 border rounded-xl font-medium"
+                  className="w-full sm:w-auto px-4 py-2 border rounded-xl font-medium text-slate-700 hover:bg-slate-50 cursor-pointer"
                 >
                   Close
                 </button>
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-4 py-2 bg-sky-700 text-white rounded-xl font-semibold inline-flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>Print Formal Bill</span>
-                </button>
+                <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const matchedPt = patients.find((p) => p.id === selectedInvoiceForPrint.patientId);
+                      const doc = generateInvoicePDF(selectedInvoiceForPrint, matchedPt);
+                      doc.save(`Invoice_${selectedInvoiceForPrint.invoiceNumber}.pdf`);
+                    }}
+                    className="px-3.5 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-xl font-semibold inline-flex items-center gap-1.5 cursor-pointer text-xs"
+                    title="Download A4 Invoice PDF"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download PDF</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const matchedPt = patients.find((p) => p.id === selectedInvoiceForPrint.patientId);
+                      const doc = generateInvoicePDF(selectedInvoiceForPrint, matchedPt);
+                      printPDFDocument(doc);
+                    }}
+                    className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white rounded-xl font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-sm text-xs"
+                    title="Print single-sheet A4 invoice on laser printer"
+                  >
+                    <Printer className="w-4 h-4" />
+                    <span>Print A4 Bill (Laser)</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
