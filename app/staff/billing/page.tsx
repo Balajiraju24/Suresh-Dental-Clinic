@@ -11,7 +11,7 @@ import {
   getPatients,
   getDentalServices,
 } from "@/lib/data/data-service";
-import { Invoice, PaymentReceipt, Patient, DentalService, PaymentMethod } from "@/types/portal";
+import { Invoice, InvoiceItem, PaymentReceipt, Patient, DentalService, PaymentMethod } from "@/types/portal";
 import {
   CreditCard,
   Plus,
@@ -208,32 +208,45 @@ export default function StaffBillingPage() {
       const subtotal = calculateSubtotal();
       const total = calculateTotal();
 
-      const items = invItems.map((item, idx) => ({
-        id: `item-${idx + 1}`,
-        serviceId: item.serviceId,
-        serviceName: item.serviceName,
-        toothNumber: item.toothNumber || undefined,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        total: item.quantity * item.unitPrice,
-      }));
+      const items: InvoiceItem[] = invItems.map((item, idx) => {
+        const lineItem: InvoiceItem = {
+          id: `item-${idx + 1}`,
+          serviceId: item.serviceId,
+          serviceName: item.serviceName,
+          quantity: item.quantity,
+          unitPrice: item.unitPrice,
+          total: item.quantity * item.unitPrice,
+        };
+        if (item.toothNumber && item.toothNumber.trim()) {
+          lineItem.toothNumber = item.toothNumber.trim();
+        }
+        return lineItem;
+      });
+
+      const invoicePayload: Omit<
+        Invoice,
+        "id" | "invoiceNumber" | "paidAmount" | "balanceAmount" | "createdAt" | "updatedAt"
+      > = {
+        patientId: patient.id,
+        patientName: `${patient.firstName} ${patient.lastName}`,
+        patientPhone: patient.phoneNumber,
+        issueDate: new Date().toISOString().split("T")[0],
+        items,
+        subtotal,
+        discount: Number(invDiscount || 0),
+        tax: 0,
+        totalAmount: total,
+        status: "issued",
+        createdByUid: currentUser.uid,
+        createdByName: currentUser.displayName,
+      };
+
+      if (invNotes && invNotes.trim()) {
+        invoicePayload.notes = invNotes.trim();
+      }
 
       const created = await createInvoice(
-        {
-          patientId: patient.id,
-          patientName: `${patient.firstName} ${patient.lastName}`,
-          patientPhone: patient.phoneNumber,
-          issueDate: new Date().toISOString().split("T")[0],
-          items,
-          subtotal,
-          discount: Number(invDiscount || 0),
-          tax: 0,
-          totalAmount: total,
-          status: "issued",
-          notes: invNotes.trim() || undefined,
-          createdByUid: currentUser.uid,
-          createdByName: currentUser.displayName,
-        },
+        invoicePayload,
         {
           uid: currentUser.uid,
           displayName: currentUser.displayName,
@@ -273,20 +286,27 @@ export default function StaffBillingPage() {
     setPaySubmitting(true);
 
     try {
+      const paymentPayload: Omit<PaymentReceipt, "id" | "receiptNumber" | "createdAt"> = {
+        invoiceId: payInvoice.id,
+        invoiceNumber: payInvoice.invoiceNumber,
+        patientId: payInvoice.patientId,
+        patientName: payInvoice.patientName,
+        amount: Number(payAmount),
+        paymentDate: new Date().toISOString().split("T")[0],
+        paymentMethod: payMethod,
+        receivedByUid: currentUser.uid,
+        receivedByName: currentUser.displayName,
+      };
+
+      if (payReference && payReference.trim()) {
+        paymentPayload.transactionReference = payReference.trim();
+      }
+      if (payNotes && payNotes.trim()) {
+        paymentPayload.notes = payNotes.trim();
+      }
+
       const newReceipt = await recordPayment(
-        {
-          invoiceId: payInvoice.id,
-          invoiceNumber: payInvoice.invoiceNumber,
-          patientId: payInvoice.patientId,
-          patientName: payInvoice.patientName,
-          amount: Number(payAmount),
-          paymentDate: new Date().toISOString().split("T")[0],
-          paymentMethod: payMethod,
-          transactionReference: payReference.trim() || undefined,
-          receivedByUid: currentUser.uid,
-          receivedByName: currentUser.displayName,
-          notes: payNotes.trim() || undefined,
-        },
+        paymentPayload,
         {
           uid: currentUser.uid,
           displayName: currentUser.displayName,

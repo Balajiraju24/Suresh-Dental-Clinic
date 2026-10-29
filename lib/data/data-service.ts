@@ -61,6 +61,15 @@ function withTimeout<T>(promise: Promise<T>, ms = 2500): Promise<T> {
   ]);
 }
 
+/**
+ * Recursively strips undefined keys and nested undefined properties from objects
+ * so Firestore setDoc/updateDoc never throws "Unsupported field value: undefined".
+ */
+function sanitizeForFirestore<T>(data: T): T {
+  if (data === null || data === undefined) return data;
+  return JSON.parse(JSON.stringify(data)) as T;
+}
+
 // In-memory fallback cache for Node test and server environments
 const memoryCache: Record<string, unknown[]> = {};
 
@@ -118,18 +127,22 @@ export async function logAuditEvent(
     details,
   };
 
-  if (isFirebaseConfigured() && db) {
-    try {
-      await setDoc(doc(db, "audit_logs", auditEntry.id), auditEntry);
-      return;
-    } catch (e) {
-      console.warn("Firestore audit write fallback:", e);
-    }
-  }
-
+  // 1. Immediately record in local persistent storage
   const list = getLocalData<AuditLog>(STORAGE_KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS);
   list.unshift(auditEntry);
-  setLocalData(STORAGE_KEYS.AUDIT_LOGS, list.slice(0, 500)); // retain last 500
+  setLocalData(STORAGE_KEYS.AUDIT_LOGS, list.slice(0, 500));
+
+  // 2. Non-blocking sanitized background sync to Firestore
+  if (isFirebaseConfigured() && db) {
+    try {
+      const cleanAudit = sanitizeForFirestore(auditEntry);
+      withTimeout(setDoc(doc(db, "audit_logs", auditEntry.id), cleanAudit), 3000).catch((e) =>
+        console.warn("Firestore audit write fallback:", e)
+      );
+    } catch (e) {
+      console.warn("Firestore audit dispatch note:", e);
+    }
+  }
 }
 
 export async function getAuditLogs(): Promise<AuditLog[]> {
@@ -187,7 +200,8 @@ export async function createAppointment(
 
   if (isFirebaseConfigured() && db) {
     try {
-      await setDoc(doc(db, "appointments", newAppointment.id), newAppointment);
+      const cleanApt = sanitizeForFirestore(newAppointment);
+      await withTimeout(setDoc(doc(db, "appointments", newAppointment.id), cleanApt), 3000);
     } catch (e) {
       console.warn("Firestore createAppointment fallback:", e);
     }
@@ -222,7 +236,8 @@ export async function updateAppointmentStatus(
 
   if (isFirebaseConfigured() && db) {
     try {
-      await updateDoc(doc(db, "appointments", appointmentId), updates);
+      const cleanUpdates = sanitizeForFirestore(updates);
+      await withTimeout(updateDoc(doc(db, "appointments", appointmentId), cleanUpdates), 3000);
     } catch (e) {
       console.warn("Firestore updateAppointmentStatus fallback:", e);
     }
@@ -296,7 +311,8 @@ export async function createPatient(
 
   if (isFirebaseConfigured() && db) {
     try {
-      await setDoc(doc(db, "patients", newPatient.id), newPatient);
+      const cleanPatient = sanitizeForFirestore(newPatient);
+      await withTimeout(setDoc(doc(db, "patients", newPatient.id), cleanPatient), 3000);
     } catch (e) {
       console.warn("Firestore createPatient fallback:", e);
     }
@@ -327,7 +343,8 @@ export async function updatePatient(
 
   if (isFirebaseConfigured() && db) {
     try {
-      await updateDoc(doc(db, "patients", patientId), updates);
+      const cleanUpdates = sanitizeForFirestore(updates);
+      await withTimeout(updateDoc(doc(db, "patients", patientId), cleanUpdates), 3000);
     } catch (e) {
       console.warn("Firestore updatePatient fallback:", e);
     }
@@ -538,19 +555,25 @@ export async function createInvoice(
 
   // 4. Non-blocking parallel background sync to Firestore
   if (isFirebaseConfigured() && db) {
-    Promise.allSettled([
-      withTimeout(setDoc(doc(db, "invoices", newInvoice.id), newInvoice), 3000),
-      targetPatient
-        ? withTimeout(
-            updateDoc(doc(db, "patients", targetPatient.id), {
-              outstandingBalance: newPatientBalance,
-              updatedAt: new Date().toISOString(),
-            }),
-            3000
-          )
-        : Promise.resolve(),
-      withTimeout(setDoc(doc(db, "audit_logs", auditEntry.id), auditEntry), 3000),
-    ]).catch((err) => console.warn("Firestore background invoice sync note:", err));
+    try {
+      const cleanInvoice = sanitizeForFirestore(newInvoice);
+      const cleanAudit = sanitizeForFirestore(auditEntry);
+      Promise.allSettled([
+        withTimeout(setDoc(doc(db, "invoices", newInvoice.id), cleanInvoice), 3000),
+        targetPatient
+          ? withTimeout(
+              updateDoc(doc(db, "patients", targetPatient.id), {
+                outstandingBalance: newPatientBalance,
+                updatedAt: new Date().toISOString(),
+              }),
+              3000
+            )
+          : Promise.resolve(),
+        withTimeout(setDoc(doc(db, "audit_logs", auditEntry.id), cleanAudit), 3000),
+      ]).catch((err) => console.warn("Firestore background invoice sync note:", err));
+    } catch (err) {
+      console.warn("Firestore background invoice dispatch note:", err);
+    }
   }
 
   return newInvoice;
@@ -655,22 +678,29 @@ export async function recordPayment(
 
   // 5. Non-blocking parallel background sync to Cloud Firestore
   if (isFirebaseConfigured() && db) {
-    Promise.allSettled([
-      withTimeout(setDoc(doc(db, "payments", newPayment.id), newPayment), 3000),
-      targetInvoice && invUpdates
-        ? withTimeout(updateDoc(doc(db, "invoices", targetInvoice.id), invUpdates), 3000)
-        : Promise.resolve(),
-      targetPatient
-        ? withTimeout(
-            updateDoc(doc(db, "patients", targetPatient.id), {
-              outstandingBalance: newPatientBalance,
-              updatedAt: new Date().toISOString(),
-            }),
-            3000
-          )
-        : Promise.resolve(),
-      withTimeout(setDoc(doc(db, "audit_logs", auditEntry.id), auditEntry), 3000),
-    ]).catch((err) => console.warn("Firestore background payment sync note:", err));
+    try {
+      const cleanPayment = sanitizeForFirestore(newPayment);
+      const cleanInvUpdates = invUpdates ? sanitizeForFirestore(invUpdates) : null;
+      const cleanAudit = sanitizeForFirestore(auditEntry);
+      Promise.allSettled([
+        withTimeout(setDoc(doc(db, "payments", newPayment.id), cleanPayment), 3000),
+        targetInvoice && cleanInvUpdates
+          ? withTimeout(updateDoc(doc(db, "invoices", targetInvoice.id), cleanInvUpdates), 3000)
+          : Promise.resolve(),
+        targetPatient
+          ? withTimeout(
+              updateDoc(doc(db, "patients", targetPatient.id), {
+                outstandingBalance: newPatientBalance,
+                updatedAt: new Date().toISOString(),
+              }),
+              3000
+            )
+          : Promise.resolve(),
+        withTimeout(setDoc(doc(db, "audit_logs", auditEntry.id), cleanAudit), 3000),
+      ]).catch((err) => console.warn("Firestore background payment sync note:", err));
+    } catch (err) {
+      console.warn("Firestore background payment dispatch note:", err);
+    }
   }
 
   return newPayment;
