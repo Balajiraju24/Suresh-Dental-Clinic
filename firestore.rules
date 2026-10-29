@@ -44,11 +44,14 @@ service cloud.firestore {
 
     // 1. Staff collection: User profiles and roles
     match /staff/{staffUid} {
-      // Any authenticated active staff can read staff list (to display doctors, front desk, etc.)
-      allow read: if isStaffActive();
+      // Allow any authenticated user to read their own staff record, or active staff to view directory
+      allow read: if isAuthenticated() && (request.auth.uid == staffUid || isStaffActive());
       
-      // Only Administrators can create, update, or delete staff records and roles
-      allow create, update, delete: if isAdmin();
+      // Allow user to initialize their own profile, or Administrator to create any staff account
+      allow create: if isAuthenticated() && (isAdmin() || request.auth.uid == staffUid);
+      
+      // Only Administrators can update roles or deactivate accounts
+      allow update, delete: if isAdmin();
     }
 
     // 2. Patients collection

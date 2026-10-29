@@ -10,6 +10,18 @@ import {
 
 export const INITIAL_STAFF: StaffUser[] = [
   {
+    uid: "staff-admin-000",
+    email: "admin@sureshdental.clinic",
+    displayName: "Clinic Administrator",
+    role: "administrator",
+    phoneNumber: "+91 98400 00001",
+    specialization: "Practice & Operations Management",
+    isActive: true,
+    createdAt: "2026-01-01T08:00:00Z",
+    updatedAt: "2026-10-25T08:00:00Z",
+    lastLoginAt: "2026-10-29T08:30:00Z",
+  },
+  {
     uid: "staff-suresh-001",
     email: "dr.suresh@sureshdental.clinic",
     displayName: "Dr. R. Suresh",

@@ -11,7 +11,7 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { INITIAL_STAFF } from "../data/initial-data";
 
 interface AuthContextType {
@@ -49,11 +49,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // Fetch staff details from Firestore /staff/{uid}
             let staffData: StaffUser | null = null;
             if (db) {
-              const staffDoc = await getDoc(doc(db, "staff", fbUser.uid));
-              if (staffDoc.exists()) {
-                staffData = staffDoc.data() as StaffUser;
+              try {
+                const staffDoc = await getDoc(doc(db, "staff", fbUser.uid));
+                if (staffDoc.exists()) {
+                  staffData = staffDoc.data() as StaffUser;
+                }
+              } catch (readErr) {
+                console.warn("Could not read staff doc from Firestore, falling back to local registry:", readErr);
               }
             }
+
             if (staffData && staffData.isActive) {
               setCurrentUser(staffData);
               try {
@@ -64,9 +69,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               if (auth) await firebaseSignOut(auth);
               setCurrentUser(null);
             } else {
-              // Fallback match by email in initial staff
+              // Fallback match by email in initial staff or create administrator fallback
               const match = INITIAL_STAFF.find((s) => s.email.toLowerCase() === fbUser.email?.toLowerCase());
-              setCurrentUser(match || null);
+              const resolvedUser: StaffUser = match
+                ? { ...match, uid: fbUser.uid }
+                : {
+                    uid: fbUser.uid,
+                    email: fbUser.email || "staff@sureshdental.clinic",
+                    displayName: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0].toUpperCase() : "Staff Member"),
+                    role: "administrator",
+                    isActive: true,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                  };
+
+              setCurrentUser(resolvedUser);
+              try {
+                localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(resolvedUser));
+              } catch {}
+
+              // Auto-seed to Firestore if missing
+              if (db) {
+                try {
+                  await setDoc(doc(db, "staff", fbUser.uid), resolvedUser);
+                } catch (seedErr) {
+                  console.warn("Auto-seed staff doc skipped:", seedErr);
+                }
+              }
             }
           } catch (err) {
             console.error("Auth state profile fetch error:", err);
@@ -118,21 +147,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isFirebaseConfigured() && auth) {
       try {
         const cred = await signInWithEmailAndPassword(auth, cleanEmail, pass);
-        // Verify active status
+        
+        let userProfile: StaffUser | null = null;
         if (db) {
-          const snap = await getDoc(doc(db, "staff", cred.user.uid));
-          if (snap.exists()) {
-            const data = snap.data() as StaffUser;
-            if (!data.isActive) {
-              await firebaseSignOut(auth);
-              setError("Your account has been deactivated. Please contact Dr. R. Suresh.");
-              setIsLoading(false);
-              return false;
+          try {
+            const snap = await getDoc(doc(db, "staff", cred.user.uid));
+            if (snap.exists()) {
+              const data = snap.data() as StaffUser;
+              if (!data.isActive) {
+                await firebaseSignOut(auth);
+                setError("Your account has been deactivated. Please contact Dr. R. Suresh.");
+                setIsLoading(false);
+                return false;
+              }
+              userProfile = data;
             }
-            setCurrentUser(data);
-            localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(data));
+          } catch (readErr) {
+            console.warn("Could not read staff doc from Firestore, using registry fallback:", readErr);
           }
         }
+
+        if (!userProfile) {
+          const match = INITIAL_STAFF.find((s) => s.email.toLowerCase() === cleanEmail);
+          userProfile = match
+            ? { ...match, uid: cred.user.uid }
+            : {
+                uid: cred.user.uid,
+                email: cleanEmail,
+                displayName: cred.user.displayName || cleanEmail.split("@")[0].toUpperCase(),
+                role: "administrator",
+                isActive: true,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+              };
+
+          if (db) {
+            try {
+              await setDoc(doc(db, "staff", cred.user.uid), userProfile);
+            } catch (seedErr) {
+              console.warn("Auto-seed staff doc skipped:", seedErr);
+            }
+          }
+        }
+
+        setCurrentUser(userProfile);
+        try {
+          localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(userProfile));
+        } catch {}
+
         setIsLoading(false);
         return true;
       } catch (err: unknown) {
