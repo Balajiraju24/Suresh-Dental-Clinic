@@ -20,7 +20,29 @@ This guide provides the instructions for securely provisioning the initial clini
 
 ---
 
-## 2. Initial Administrator Provisioning Procedure
+## 2. Deploying Firestore Security Rules & Indexes
+
+You have two convenient options to deploy the security rules:
+
+### Option A: Direct Copy-Paste via Firebase Console (Immediate, No IAM setup)
+1. Open [Firebase Console](https://console.firebase.google.com/project/suresh-dental-clinic/firestore/rules).
+2. Go to **Firestore Database** &rarr; **Rules** tab.
+3. Replace the contents with the entire text from [`firestore.rules`](./firestore.rules) in this repository.
+4. Click **Publish**.
+
+### Option B: Automated via GitHub Actions CI/CD
+To allow the GitHub Actions workflow to deploy security rules automatically:
+1. Open [Google Cloud IAM Console](https://console.cloud.google.com/iam-admin/iam?project=suresh-dental-clinic).
+2. Locate the GitHub Actions service account (starts with `github-action-` or matching your secret's `client_email`).
+3. Click the **Edit Principal** (pencil) icon.
+4. Click **+ ADD ANOTHER ROLE** and assign:
+   - **Firebase Rules Admin** (`roles/firebaserules.admin`)
+   - **Cloud Datastore Index Admin** (`roles/datastore.indexAdmin`)
+5. Click **Save**. Future git pushes will now deploy rules and indexes automatically.
+
+---
+
+## 3. Initial Administrator Provisioning Procedure
 
 To establish the primary administrator account for **Dr. R. Suresh**:
 
