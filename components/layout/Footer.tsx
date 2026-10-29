@@ -157,6 +157,13 @@ export function Footer() {
             >
               Privacy Policy (Draft Healthcare Disclaimer)
             </Link>
+            <span className="hidden sm:inline text-slate-700">|</span>
+            <Link
+              href="/staff/login"
+              className="text-sky-400 hover:text-sky-300 font-medium transition-colors inline-flex items-center gap-1"
+            >
+              <span>Staff Portal Login</span>
+            </Link>
           </div>
 
           <div className="flex items-center gap-1.5 text-amber-500/90 text-center text-[11px]">

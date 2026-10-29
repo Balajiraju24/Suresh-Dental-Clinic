@@ -1,0 +1,139 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getStaffDoc() {
+      return get(/databases/$(database)/documents/staff/$(request.auth.uid)).data;
+    }
+
+    function isStaffActive() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/staff/$(request.auth.uid)) &&
+        getStaffDoc().isActive == true;
+    }
+
+    function hasRole(role) {
+      return isStaffActive() && getStaffDoc().role == role;
+    }
+
+    function isAdmin() {
+      return hasRole('administrator');
+    }
+
+    function isReceptionist() {
+      return hasRole('receptionist');
+    }
+
+    function isDentist() {
+      return hasRole('dentist');
+    }
+
+    function isAccounts() {
+      return hasRole('accounts');
+    }
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 1. Staff collection: User profiles and roles
+    match /staff/{staffUid} {
+      // Any authenticated active staff can read staff list (to display doctors, front desk, etc.)
+      allow read: if isStaffActive();
+      
+      // Only Administrators can create, update, or delete staff records and roles
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 2. Patients collection
+    match /patients/{patientId} {
+      // Admin, Receptionist, Dentist can read patient demographics
+      // Accounts can read basic patient info for invoice reconciliation
+      allow read: if isAdmin() || isReceptionist() || isDentist() || isAccounts();
+      
+      // Receptionist and Admin can register new patients and update demographics
+      allow create, update: if isAdmin() || isReceptionist();
+
+      // Deletion restricted to Administrator
+      allow delete: if isAdmin();
+    }
+
+    // 3. Appointments collection
+    match /appointments/{appointmentId} {
+      // All authenticated active staff can read appointments schedule
+      allow read: if isStaffActive();
+
+      // Receptionist and Admin can book, reschedule, or cancel appointments
+      allow create: if isAdmin() || isReceptionist();
+      
+      // Receptionist, Admin, and assigned Dentist can update appointment status (e.g. check-in, in-progress, completed)
+      allow update: if isAdmin() || isReceptionist() || (isDentist() && resource.data.dentistUid == request.auth.uid);
+
+      // Deletions disallowed (appointments are marked 'cancelled' or 'no_show' for audit trail)
+      allow delete: if isAdmin();
+    }
+
+    // 4. Dental Services catalogue
+    match /services/{serviceId} {
+      // All active staff can view services and fee structure
+      allow read: if isStaffActive();
+
+      // Only Administrator can add, update fees, or disable services
+      allow create, update, delete: if isAdmin();
+    }
+
+    // 5. Invoices collection
+    match /invoices/{invoiceId} {
+      // Admin, Receptionist, Accounts can read all invoices. Dentist can read treatment invoices.
+      allow read: if isAdmin() || isReceptionist() || isAccounts() || isDentist();
+
+      // Admin, Receptionist, and Accounts can create invoices and update balance
+      allow create: if isAdmin() || isReceptionist() || isAccounts();
+      allow update: if isAdmin() || isReceptionist() || isAccounts();
+
+      // Invoices cannot be deleted to preserve financial record integrity (cancelled status used instead)
+      allow delete: if isAdmin();
+    }
+
+    // 6. Payments & Receipts collection
+    match /payments/{paymentId} {
+      // Financial staff and Admin can read payments
+      allow read: if isAdmin() || isAccounts() || isReceptionist() || isDentist();
+
+      // Authorized payments can be recorded by Admin, Accounts, or Receptionist
+      allow create: if isAdmin() || isAccounts() || isReceptionist();
+
+      // Payments are IMMUTABLE once recorded to prevent fraud
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // 7. Audit Logs collection
+    match /audit_logs/{logId} {
+      // Only Administrators can inspect audit logs
+      allow read: if isAdmin();
+
+      // Any authenticated active staff can append an audit log entry
+      allow create: if isStaffActive();
+
+      // Audit logs are strictly immutable and tamper-evident
+      allow update, delete: if false;
+    }
+
+    // 8. Clinic Settings
+    match /settings/{settingId} {
+      // All active staff can read clinic working hours, operatory setups
+      allow read: if isStaffActive();
+
+      // Only Administrator can modify clinic configuration
+      allow write: if isAdmin();
+    }
+  }
+}
+

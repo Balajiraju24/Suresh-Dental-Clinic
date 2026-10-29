@@ -1,10 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { VerificationBanner } from "@/components/layout/VerificationBanner";
+import { PublicShell } from "@/components/layout/PublicShell";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { AuthProvider } from "@/lib/auth/AuthContext";
 import { clinicConfig } from "@/config/clinic";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -193,27 +192,11 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col font-sans bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-sky-100 selection:text-sky-900 dark:selection:bg-sky-900 dark:selection:text-sky-100 transition-colors duration-200">
         <ThemeProvider>
-          {/* Accessible Skip Link for Screen Readers & Keyboard Navigation */}
-          <a
-            href="#main-content"
-            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-sky-800 focus:text-white focus:rounded-lg focus:shadow-lg focus:outline-none"
-          >
-            Skip to main content
-          </a>
-
-          {/* Development & Verification Status Banner */}
-          <VerificationBanner />
-
-          {/* Global Responsive Header */}
-          <Header />
-
-          {/* Main Page Content Landmark */}
-          <main id="main-content" className="flex-1">
-            {children}
-          </main>
-
-          {/* Global Footer */}
-          <Footer />
+          <AuthProvider>
+            <PublicShell>
+              {children}
+            </PublicShell>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
