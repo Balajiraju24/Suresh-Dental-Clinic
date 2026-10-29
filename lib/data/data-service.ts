@@ -151,18 +151,24 @@ export async function getAuditLogs(): Promise<AuditLog[]> {
 // APPOINTMENTS
 // ==========================================
 export async function getAppointments(): Promise<Appointment[]> {
+  const localList = getLocalData<Appointment>(STORAGE_KEYS.APPOINTMENTS, INITIAL_APPOINTMENTS);
   if (isFirebaseConfigured() && db) {
     try {
       const q = query(collection(db, "appointments"), orderBy("date", "desc"));
       const snap = await withTimeout(getDocs(q), 2500);
       if (!snap.empty) {
-        return snap.docs.map((d) => d.data() as Appointment);
+        const firestoreList = snap.docs.map((d) => d.data() as Appointment);
+        const firestoreIds = new Set(firestoreList.map((a) => a.id));
+        const pendingLocal = localList.filter((a) => !firestoreIds.has(a.id));
+        const merged = [...pendingLocal, ...firestoreList];
+        setLocalData(STORAGE_KEYS.APPOINTMENTS, merged);
+        return merged;
       }
     } catch (e) {
       console.warn("Firestore getAppointments fallback:", e);
     }
   }
-  return getLocalData<Appointment>(STORAGE_KEYS.APPOINTMENTS, INITIAL_APPOINTMENTS);
+  return localList;
 }
 
 export async function createAppointment(
@@ -236,18 +242,24 @@ export async function updateAppointmentStatus(
 // PATIENTS
 // ==========================================
 export async function getPatients(): Promise<Patient[]> {
+  const localList = getLocalData<Patient>(STORAGE_KEYS.PATIENTS, INITIAL_PATIENTS);
   if (isFirebaseConfigured() && db) {
     try {
       const q = query(collection(db, "patients"), orderBy("registeredAt", "desc"));
       const snap = await withTimeout(getDocs(q), 2500);
       if (!snap.empty) {
-        return snap.docs.map((d) => d.data() as Patient);
+        const firestoreList = snap.docs.map((d) => d.data() as Patient);
+        const firestoreIds = new Set(firestoreList.map((p) => p.id));
+        const pendingLocal = localList.filter((p) => !firestoreIds.has(p.id));
+        const merged = [...pendingLocal, ...firestoreList];
+        setLocalData(STORAGE_KEYS.PATIENTS, merged);
+        return merged;
       }
     } catch (e) {
       console.warn("Firestore getPatients fallback:", e);
     }
   }
-  return getLocalData<Patient>(STORAGE_KEYS.PATIENTS, INITIAL_PATIENTS);
+  return localList;
 }
 
 export async function getPatientById(id: string): Promise<Patient | null> {
@@ -443,20 +455,33 @@ export async function updateDentalService(
 // BILLING & INVOICES
 // ==========================================
 export async function getInvoices(): Promise<Invoice[]> {
+  const localList = getLocalData<Invoice>(STORAGE_KEYS.INVOICES, INITIAL_INVOICES);
   if (isFirebaseConfigured() && db) {
     try {
       const q = query(collection(db, "invoices"), orderBy("issueDate", "desc"));
       const snap = await withTimeout(getDocs(q), 2500);
       if (!snap.empty) {
         const firestoreList = snap.docs.map((d) => d.data() as Invoice);
-        setLocalData(STORAGE_KEYS.INVOICES, firestoreList);
-        return firestoreList;
+        const firestoreIds = new Set(firestoreList.map((i) => i.id));
+        const pendingLocal = localList.filter((i) => !firestoreIds.has(i.id));
+
+        const mergedFirestore = firestoreList.map((fInv) => {
+          const lInv = localList.find((l) => l.id === fInv.id);
+          if (lInv && lInv.updatedAt && fInv.updatedAt) {
+            return new Date(lInv.updatedAt) > new Date(fInv.updatedAt) ? lInv : fInv;
+          }
+          return lInv || fInv;
+        });
+
+        const merged = [...pendingLocal, ...mergedFirestore];
+        setLocalData(STORAGE_KEYS.INVOICES, merged);
+        return merged;
       }
     } catch (e) {
       console.warn("Firestore getInvoices fallback:", e);
     }
   }
-  return getLocalData<Invoice>(STORAGE_KEYS.INVOICES, INITIAL_INVOICES);
+  return localList;
 }
 
 export async function createInvoice(
@@ -535,20 +560,24 @@ export async function createInvoice(
 // PAYMENTS & RECEIPTS
 // ==========================================
 export async function getPayments(): Promise<PaymentReceipt[]> {
+  const localList = getLocalData<PaymentReceipt>(STORAGE_KEYS.PAYMENTS, INITIAL_PAYMENTS);
   if (isFirebaseConfigured() && db) {
     try {
       const q = query(collection(db, "payments"), orderBy("paymentDate", "desc"));
       const snap = await withTimeout(getDocs(q), 2500);
       if (!snap.empty) {
         const firestoreList = snap.docs.map((d) => d.data() as PaymentReceipt);
-        setLocalData(STORAGE_KEYS.PAYMENTS, firestoreList);
-        return firestoreList;
+        const firestoreIds = new Set(firestoreList.map((p) => p.id));
+        const pendingLocal = localList.filter((p) => !firestoreIds.has(p.id));
+        const merged = [...pendingLocal, ...firestoreList];
+        setLocalData(STORAGE_KEYS.PAYMENTS, merged);
+        return merged;
       }
     } catch (e) {
       console.warn("Firestore getPayments fallback:", e);
     }
   }
-  return getLocalData<PaymentReceipt>(STORAGE_KEYS.PAYMENTS, INITIAL_PAYMENTS);
+  return localList;
 }
 
 export async function recordPayment(

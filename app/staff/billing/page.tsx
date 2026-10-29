@@ -87,26 +87,31 @@ export default function StaffBillingPage() {
       setPatients(pts);
       setServices(srvs.filter((s) => s.isActive));
 
-      if (pts.length > 0 && !invPatientId) {
-        setInvPatientId(pts[0].id);
+      if (pts.length > 0) {
+        setInvPatientId((prev) => prev || pts[0].id);
       }
-      if (srvs.length > 0 && !invItems[0].serviceId) {
-        setInvItems([
-          {
-            serviceId: srvs[0].id,
-            serviceName: srvs[0].name,
-            toothNumber: "",
-            quantity: 1,
-            unitPrice: srvs[0].standardFee,
-          },
-        ]);
+      if (srvs.length > 0) {
+        setInvItems((prev) => {
+          if (prev.length > 0 && prev[0].serviceId) return prev;
+          const activeSrvs = srvs.filter((s) => s.isActive);
+          const first = activeSrvs[0] || srvs[0];
+          return [
+            {
+              serviceId: first.id,
+              serviceName: first.name,
+              toothNumber: "",
+              quantity: 1,
+              unitPrice: first.standardFee,
+            },
+          ];
+        });
       }
     } catch (e) {
       console.error("Billing data load error:", e);
     } finally {
       setLoading(false);
     }
-  }, [invPatientId, invItems]);
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -190,8 +195,15 @@ export default function StaffBillingPage() {
     setInvSubmitting(true);
 
     try {
-      const patient = patients.find((p) => p.id === invPatientId);
-      if (!patient) return;
+      let patient = patients.find((p) => p.id === invPatientId);
+      if (!patient && patients.length > 0) {
+        patient = patients[0];
+      }
+      if (!patient) {
+        alert("Please select or register a patient before generating an invoice.");
+        setInvSubmitting(false);
+        return;
+      }
 
       const subtotal = calculateSubtotal();
       const total = calculateTotal();
@@ -229,13 +241,27 @@ export default function StaffBillingPage() {
         }
       );
 
-      setInvoices((prev) => [created, ...prev]);
+      // Prepend to current invoices state immediately
+      setInvoices((prev) => [created, ...prev.filter((i) => i.id !== created.id)]);
       setIsInvoiceModalOpen(false);
       setInvDiscount(0);
       setInvNotes("");
-      loadData();
+
+      // Reset items for next entry
+      if (services.length > 0) {
+        setInvItems([
+          {
+            serviceId: services[0].id,
+            serviceName: services[0].name,
+            toothNumber: "",
+            quantity: 1,
+            unitPrice: services[0].standardFee,
+          },
+        ]);
+      }
     } catch (err) {
       console.error("Create invoice error:", err);
+      alert("An error occurred while generating the invoice. Please try again.");
     } finally {
       setInvSubmitting(false);
     }
@@ -268,8 +294,10 @@ export default function StaffBillingPage() {
         }
       );
 
-      // Optimistic instant state update for immediate UI feedback
-      setPayments((prev) => [newReceipt, ...prev]);
+      // 1. Instant update to payments list
+      setPayments((prev) => [newReceipt, ...prev.filter((p) => p.id !== newReceipt.id)]);
+
+      // 2. Instant update to invoices list (marks invoice paid or partially_paid in UI)
       setInvoices((prev) =>
         prev.map((inv) => {
           if (inv.id === payInvoice.id) {
@@ -280,20 +308,24 @@ export default function StaffBillingPage() {
               paidAmount: updatedPaid,
               balanceAmount: updatedBal,
               status: updatedBal === 0 ? "paid" : "partially_paid",
+              updatedAt: new Date().toISOString(),
             };
           }
           return inv;
         })
       );
 
+      // 3. Close the Collect Payment modal
       setIsPayModalOpen(false);
       setPayAmount(0);
       setPayReference("");
       setPayNotes("");
+
+      // 4. Immediately pop up the Official A4 Receipt dialog
       setSelectedReceipt(newReceipt);
-      loadData();
     } catch (err) {
       console.error("Payment record error:", err);
+      alert("An error occurred while recording the payment. Please try again.");
     } finally {
       setPaySubmitting(false);
     }
