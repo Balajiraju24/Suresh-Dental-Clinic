@@ -8,10 +8,9 @@ import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import {
   Menu,
   LogOut,
-  UserCheck,
   ChevronDown,
   Clock,
-  Sparkles,
+  ShieldCheck,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -20,8 +19,7 @@ interface StaffHeaderProps {
 }
 
 export function StaffHeader({ onToggleSidebar }: StaffHeaderProps) {
-  const { currentUser, role, logout, switchDemoRole } = useAuth();
-  const [showRoleMenu, setShowRoleMenu] = useState(false);
+  const { currentUser, role, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const router = useRouter();
 
@@ -31,13 +29,6 @@ export function StaffHeader({ onToggleSidebar }: StaffHeaderProps) {
     await logout();
     router.replace("/staff/login");
   };
-
-  const handleRoleChange = (newRole: StaffRole) => {
-    switchDemoRole(newRole);
-    setShowRoleMenu(false);
-  };
-
-  const roles: StaffRole[] = ["administrator", "receptionist", "dentist", "accounts"];
 
   const todayStr = new Intl.DateTimeFormat("en-IN", {
     weekday: "short",
@@ -68,60 +59,25 @@ export function StaffHeader({ onToggleSidebar }: StaffHeaderProps) {
           </div>
         </div>
 
-        {/* Right actions: Role preview switcher, Theme toggle, Profile menu */}
+        {/* Right actions: Verified Role Badge, Theme toggle, Profile menu */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Role testing switcher */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => {
-                setShowRoleMenu(!showRoleMenu);
-                setShowUserMenu(false);
-              }}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-750 transition-colors shadow-2xs"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-              <span className="hidden md:inline">Role:</span>
-              <span className="font-bold text-sky-700 dark:text-sky-400">
-                {roleMeta?.label || role}
-              </span>
-              <ChevronDown className="w-3 h-3 text-slate-400" />
-            </button>
-
-            {showRoleMenu && (
-              <div
-                className="absolute right-0 mt-2 w-56 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 py-1.5 z-50 animate-in fade-in slide-in-from-top-1"
-                onMouseLeave={() => setShowRoleMenu(false)}
-              >
-                <div className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800">
-                  Switch Active Role Test
-                </div>
-                {roles.map((r) => {
-                  const meta = ROLE_METADATA[r];
-                  const isCurrent = role === r;
-                  return (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => handleRoleChange(r)}
-                      className={`w-full text-left px-3 py-2 text-xs flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800 ${
-                        isCurrent
-                          ? "font-bold text-sky-700 dark:text-sky-400 bg-sky-50/50 dark:bg-sky-950/30"
-                          : "text-slate-700 dark:text-slate-300"
-                      }`}
-                    >
-                      <div>
-                        <div>{meta.label}</div>
-                        <div className="text-[10px] text-slate-400 font-normal line-clamp-1">
-                          {meta.description}
-                        </div>
-                      </div>
-                      {isCurrent && <UserCheck className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0 ml-2" />}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
+          {/* Current Verified Role Badge (Enforced & Read-Only) */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-2xs">
+            <span
+              className={`w-2 h-2 rounded-full ${
+                role === "administrator"
+                  ? "bg-purple-500"
+                  : role === "receptionist"
+                  ? "bg-blue-500"
+                  : role === "dentist"
+                  ? "bg-teal-500"
+                  : "bg-emerald-500"
+              }`}
+            />
+            <span className="hidden md:inline text-slate-400 dark:text-slate-500">Role:</span>
+            <span className="font-bold text-slate-800 dark:text-slate-200">
+              {roleMeta?.label || role}
+            </span>
           </div>
 
           {/* Theme Toggle */}
@@ -133,7 +89,6 @@ export function StaffHeader({ onToggleSidebar }: StaffHeaderProps) {
               type="button"
               onClick={() => {
                 setShowUserMenu(!showUserMenu);
-                setShowRoleMenu(false);
               }}
               className="flex items-center gap-2 p-1 pl-2 pr-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
             >

@@ -33,6 +33,21 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const LOCAL_SESSION_KEY = "sdc_portal_current_user";
 
+const KNOWN_ADMIN_EMAILS = [
+  "admin@balajirajumohan.com.au",
+  "dr.suresh@drsureshdental.com",
+  "dr.suresh@sureshdental.clinic",
+  "dr.ashritha@drsureshdental.com",
+  "dr.ashritha@sureshdental.clinic",
+  "admin@drsureshdental.com",
+  "admin@sureshdental.clinic",
+];
+
+function isKnownAdmin(email?: string | null): boolean {
+  if (!email) return false;
+  return KNOWN_ADMIN_EMAILS.includes(email.trim().toLowerCase());
+}
+
 function findInitialStaffByEmail(email?: string | null): StaffUser | undefined {
   if (!email) return undefined;
   const clean = email.trim().toLowerCase();
@@ -93,15 +108,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               if (auth) await firebaseSignOut(auth);
               setCurrentUser(null);
             } else {
-              // Fallback match by email in initial staff or create administrator fallback
+              // Fallback match by email in initial staff or resolve role securely
               const match = findInitialStaffByEmail(fbUser.email);
+              const defaultRole: StaffRole = isKnownAdmin(fbUser.email) ? "administrator" : "receptionist";
               const resolvedUser: StaffUser = match
                 ? { ...match, uid: fbUser.uid }
                 : {
                     uid: fbUser.uid,
                     email: fbUser.email || "staff@drsureshdental.com",
                     displayName: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0].toUpperCase() : "Staff Member"),
-                    role: "administrator",
+                    role: defaultRole,
                     isActive: true,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString(),
@@ -202,13 +218,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!userProfile) {
           const match = findInitialStaffByEmail(cleanEmail);
+          const defaultRole: StaffRole = isKnownAdmin(cleanEmail) ? "administrator" : "receptionist";
           userProfile = match
             ? { ...match, uid: cred.user.uid }
             : {
                 uid: cred.user.uid,
                 email: cleanEmail,
                 displayName: cred.user.displayName || cleanEmail.split("@")[0].toUpperCase(),
-                role: "administrator",
+                role: defaultRole,
                 isActive: true,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
@@ -340,6 +357,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const switchDemoRole = useCallback((newRole: StaffRole) => {
+    // Prevent switching roles during live Firebase authenticated sessions
+    if (isFirebaseConfigured() && auth?.currentUser) {
+      console.warn("Role switching is disabled during authenticated sessions for security.");
+      return;
+    }
+
     const matched = INITIAL_STAFF.find((s) => s.role === newRole) || {
       uid: `staff-${newRole}`,
       email: `${newRole}@drsureshdental.com`,
