@@ -912,6 +912,34 @@ export async function updateStaffStatus(
   });
 }
 
+export async function updateStaffRole(
+  uid: string,
+  newRole: StaffRole,
+  actor: { uid: string; displayName: string; role: StaffRole }
+): Promise<void> {
+  if (actor.role !== "administrator") {
+    throw new Error("Unauthorized: Only clinic administrators can change staff roles.");
+  }
+  const updates = { role: newRole, updatedAt: new Date().toISOString() };
+
+  if (isFirebaseConfigured() && db) {
+    try {
+      const cleanUpdates = sanitizeForFirestore(updates);
+      await withTimeout(updateDoc(doc(db, "staff", uid), cleanUpdates), 3000);
+    } catch (e) {
+      console.warn("Firestore updateStaffRole fallback:", e);
+    }
+  }
+
+  const list = getLocalData<StaffUser>(STORAGE_KEYS.STAFF, INITIAL_STAFF);
+  const updated = list.map((s) => (s.uid === uid ? { ...s, ...updates } : s));
+  setLocalData(STORAGE_KEYS.STAFF, updated);
+
+  await logAuditEvent(actor, "staff.role_change", "staff", uid, {
+    newRole,
+  });
+}
+
 // ==========================================
 // DASHBOARD METRICS CALCULATION
 // ==========================================

@@ -7,6 +7,7 @@ import {
   getStaffMembers,
   createStaffMember,
   updateStaffStatus,
+  updateStaffRole,
 } from "@/lib/data/data-service";
 import { StaffUser, StaffRole } from "@/types/portal";
 import { ROLE_METADATA } from "@/lib/auth/permissions";
@@ -68,6 +69,26 @@ export default function StaffTeamPage() {
       role: currentUser.role,
     });
     await loadData();
+  };
+
+  const handleRoleChange = async (user: StaffUser, newRole: StaffRole) => {
+    if (!currentUser) return;
+    if (user.uid === currentUser.uid) {
+      alert("You cannot change the role of your currently active administrative session.");
+      return;
+    }
+
+    try {
+      await updateStaffRole(user.uid, newRole, {
+        uid: currentUser.uid,
+        displayName: currentUser.displayName,
+        role: currentUser.role,
+      });
+      await loadData();
+    } catch (err) {
+      console.error("Change role error:", err);
+      alert(err instanceof Error ? err.message : "Failed to change role.");
+    }
   };
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
@@ -186,13 +207,27 @@ export default function StaffTeamPage() {
                               CURRENT SESSION
                             </span>
                           )}
-                          <span
-                            className={`px-2 py-0.5 text-[10px] font-semibold rounded-md border ${
-                              meta?.badgeClass || "bg-slate-100 text-slate-700"
-                            }`}
-                          >
-                            {meta?.label || user.role}
-                          </span>
+                          {canManageTeam && !isSelf ? (
+                            <select
+                              value={user.role}
+                              onChange={(e) => handleRoleChange(user, e.target.value as StaffRole)}
+                              className="px-2 py-0.5 text-[10px] font-semibold rounded-md border bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-300 dark:border-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-sky-500"
+                              title="Click to Change Staff Role"
+                            >
+                              <option value="administrator">Administrator</option>
+                              <option value="dentist">Associate Dentist</option>
+                              <option value="receptionist">Receptionist</option>
+                              <option value="accounts">Accounts Manager</option>
+                            </select>
+                          ) : (
+                            <span
+                              className={`px-2 py-0.5 text-[10px] font-semibold rounded-md border ${
+                                meta?.badgeClass || "bg-slate-100 text-slate-700"
+                              }`}
+                            >
+                              {meta?.label || user.role}
+                            </span>
+                          )}
                         </div>
 
                         {user.specialization && (

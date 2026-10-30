@@ -39,6 +39,10 @@ describe("Dental Clinic Data Operations & Business Logic", () => {
     const drSuresh = staff.find((s) => s.email === "dr.suresh@sureshdental.clinic");
     assert.ok(drSuresh);
     assert.equal(drSuresh?.role, "administrator");
+
+    const drAshritha = staff.find((s) => s.email === "dr.ashritha@sureshdental.clinic");
+    assert.ok(drAshritha);
+    assert.equal(drAshritha?.role, "administrator");
   });
 
   it("Calculates live dashboard metrics from actual database collections", async () => {
