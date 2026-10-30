@@ -233,9 +233,9 @@ function StaffLoginForm() {
               <button
                 type="button"
                 onClick={() => handleQuickDemoFill("dr.ashritha@sureshdental.clinic")}
-                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-teal-400 hover:bg-teal-50/50 dark:hover:bg-teal-950/20 transition-all"
+                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-purple-400 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-all"
               >
-                <div className="font-semibold text-teal-700 dark:text-teal-400">Dentist</div>
+                <div className="font-semibold text-purple-700 dark:text-purple-400">Administrator</div>
                 <div className="text-[10px] text-slate-500 truncate">Dr. Ashritha Suresh</div>
               </button>
 
