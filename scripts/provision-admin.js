@@ -66,7 +66,7 @@ async function run() {
   console.log("  Raja Annamalaipuram, Chennai, Tamil Nadu               ");
   console.log("========================================================\n");
 
-  const defaultEmail = process.argv[2] || "dr.suresh@sureshdental.clinic";
+  const defaultEmail = process.argv[2] || "dr.suresh@drsureshdental.com";
   const defaultName = process.argv[3] || "Dr. R. Suresh";
 
   const email = (await question(`Enter Administrator Email [${defaultEmail}]: `)) || defaultEmail;

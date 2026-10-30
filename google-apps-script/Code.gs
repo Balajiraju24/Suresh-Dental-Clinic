@@ -22,7 +22,7 @@ const CONFIG = {
   CLINIC_PHONE: "+91 75987 65787",
   CLINIC_ADDRESS: "Venkatraman St, Sector 1, Raja Annamalaipuram, Chennai, Tamil Nadu 600028",
   CLINIC_HOURS: "Mon – Sat: 10:00 AM – 12:00 PM | 4:30 PM – 8:30 PM (Sunday Closed)",
-  CLINIC_WEBSITE: "https://sureshdental.clinic",
+  CLINIC_WEBSITE: "https://drsureshdental.com",
   
   // Name of the Google Sheet tab where appointments will be logged
   SHEET_NAME: "Appointment Enquiries",

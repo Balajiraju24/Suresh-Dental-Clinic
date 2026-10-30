@@ -33,6 +33,22 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const LOCAL_SESSION_KEY = "sdc_portal_current_user";
 
+function findInitialStaffByEmail(email?: string | null): StaffUser | undefined {
+  if (!email) return undefined;
+  const clean = email.trim().toLowerCase();
+  const exact = INITIAL_STAFF.find((s) => s.email.toLowerCase() === clean);
+  if (exact) return exact;
+
+  const [localPart, domain] = clean.split("@");
+  if (domain === "drsureshdental.com" || domain === "sureshdental.clinic") {
+    return INITIAL_STAFF.find((s) => {
+      const [sLocal] = s.email.toLowerCase().split("@");
+      return sLocal === localPart;
+    });
+  }
+  return undefined;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<StaffUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -70,12 +86,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setCurrentUser(null);
             } else {
               // Fallback match by email in initial staff or create administrator fallback
-              const match = INITIAL_STAFF.find((s) => s.email.toLowerCase() === fbUser.email?.toLowerCase());
+              const match = findInitialStaffByEmail(fbUser.email);
               const resolvedUser: StaffUser = match
                 ? { ...match, uid: fbUser.uid }
                 : {
                     uid: fbUser.uid,
-                    email: fbUser.email || "staff@sureshdental.clinic",
+                    email: fbUser.email || "staff@drsureshdental.com",
                     displayName: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0].toUpperCase() : "Staff Member"),
                     role: "administrator",
                     isActive: true,
@@ -168,7 +184,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (!userProfile) {
-          const match = INITIAL_STAFF.find((s) => s.email.toLowerCase() === cleanEmail);
+          const match = findInitialStaffByEmail(cleanEmail);
           userProfile = match
             ? { ...match, uid: cred.user.uid }
             : {
@@ -212,7 +228,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Local / Offline validation mode
-    const matched = INITIAL_STAFF.find((s) => s.email.toLowerCase() === cleanEmail);
+    const matched = findInitialStaffByEmail(cleanEmail);
     if (!matched) {
       setError("Staff account not found. Please contact the clinic administrator.");
       setIsLoading(false);
@@ -309,7 +325,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const switchDemoRole = useCallback((newRole: StaffRole) => {
     const matched = INITIAL_STAFF.find((s) => s.role === newRole) || {
       uid: `staff-${newRole}`,
-      email: `${newRole}@sureshdental.clinic`,
+      email: `${newRole}@drsureshdental.com`,
       displayName: `Demo ${newRole.charAt(0).toUpperCase() + newRole.slice(1)}`,
       role: newRole,
       isActive: true,

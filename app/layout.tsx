@@ -22,7 +22,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://sureshdental.clinic"),
+  metadataBase: new URL("https://drsureshdental.com"),
   title: {
     default: `${clinicConfig.clinicName} | Chennai`,
     template: `%s | ${clinicConfig.displayName}`,
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://sureshdental.clinic",
+    url: "https://drsureshdental.com",
     title: clinicConfig.clinicName,
     description: clinicConfig.description,
     siteName: clinicConfig.displayName,
@@ -91,7 +91,7 @@ export default function RootLayout({
     name: clinicConfig.clinicName,
     alternateName: clinicConfig.displayName,
     description: clinicConfig.description,
-    url: "https://sureshdental.clinic",
+    url: "https://drsureshdental.com",
     telephone: clinicConfig.contact.phoneNumber || undefined,
     address: {
       "@type": "PostalAddress",

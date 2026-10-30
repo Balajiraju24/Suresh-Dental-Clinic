@@ -36,11 +36,11 @@ describe("Dental Clinic Data Operations & Business Logic", () => {
     assert.ok(appointments.length > 0);
     assert.ok(invoices.length > 0);
 
-    const drSuresh = staff.find((s) => s.email === "dr.suresh@sureshdental.clinic");
+    const drSuresh = staff.find((s) => s.email === "dr.suresh@drsureshdental.com");
     assert.ok(drSuresh);
     assert.equal(drSuresh?.role, "administrator");
 
-    const drAshritha = staff.find((s) => s.email === "dr.ashritha@sureshdental.clinic");
+    const drAshritha = staff.find((s) => s.email === "dr.ashritha@drsureshdental.com");
     assert.ok(drAshritha);
     assert.equal(drAshritha?.role, "administrator");
   });

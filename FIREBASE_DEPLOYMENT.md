@@ -93,7 +93,7 @@ As soon as `git push` completes:
 
 ## 4. Custom Domain Setup (When Ready)
 
-Once the clinic confirms their custom domain (e.g. `sureshdental.clinic`):
+Once the clinic confirms their custom domain (e.g. `drsureshdental.com`):
 1. In Firebase Console, go to **Hosting** &rarr; **Add custom domain**.
 2. Enter the domain and copy the DNS `A` / `TXT` records.
 3. Update DNS at your domain registrar.

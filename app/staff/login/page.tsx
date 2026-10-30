@@ -129,7 +129,7 @@ function StaffLoginForm() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="doctor@sureshdental.clinic"
+                  placeholder="doctor@drsureshdental.com"
                   className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                 />
               </div>
@@ -212,7 +212,7 @@ function StaffLoginForm() {
             <div className="grid grid-cols-2 gap-2 text-xs">
               <button
                 type="button"
-                onClick={() => handleQuickDemoFill("dr.suresh@sureshdental.clinic")}
+                onClick={() => handleQuickDemoFill("dr.suresh@drsureshdental.com")}
                 className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-purple-400 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-all"
               >
                 <div className="font-semibold text-purple-700 dark:text-purple-400">
@@ -223,7 +223,7 @@ function StaffLoginForm() {
 
               <button
                 type="button"
-                onClick={() => handleQuickDemoFill("reception@sureshdental.clinic")}
+                onClick={() => handleQuickDemoFill("reception@drsureshdental.com")}
                 className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all"
               >
                 <div className="font-semibold text-blue-700 dark:text-blue-400">Receptionist</div>
@@ -232,7 +232,7 @@ function StaffLoginForm() {
 
               <button
                 type="button"
-                onClick={() => handleQuickDemoFill("dr.ashritha@sureshdental.clinic")}
+                onClick={() => handleQuickDemoFill("dr.ashritha@drsureshdental.com")}
                 className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-purple-400 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-all"
               >
                 <div className="font-semibold text-purple-700 dark:text-purple-400">Administrator</div>
@@ -241,7 +241,7 @@ function StaffLoginForm() {
 
               <button
                 type="button"
-                onClick={() => handleQuickDemoFill("accounts@sureshdental.clinic")}
+                onClick={() => handleQuickDemoFill("accounts@drsureshdental.com")}
                 className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-all"
               >
                 <div className="font-semibold text-emerald-700 dark:text-emerald-400">Accounts</div>

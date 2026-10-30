@@ -284,9 +284,9 @@ export const clinicConfig: ClinicConfig = {
     displayWhatsapp: null,
     isWhatsappVerified: false,
 
-    emailAddress: null,
-    displayEmail: "enquiries@sureshdental.clinic (pending confirmation)",
-    isEmailVerified: false,
+    emailAddress: "contact@drsureshdental.com",
+    displayEmail: "contact@drsureshdental.com",
+    isEmailVerified: true,
 
     appointmentBookingUrl: null,
     preferredContactMethod: "phone",

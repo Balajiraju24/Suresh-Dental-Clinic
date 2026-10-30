@@ -3,7 +3,7 @@ import { MetadataRoute } from "next";
 export const dynamic = "force-static";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://sureshdental.clinic"; // Configurable canonical production domain
+  const baseUrl = "https://drsureshdental.com"; // Configurable canonical production domain
   const currentDate = new Date().toISOString();
 
   return [

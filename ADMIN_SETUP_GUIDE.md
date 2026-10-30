@@ -58,7 +58,7 @@ Run the provisioning script from the repository root:
 ```bash
 # Option A: With environment variable
 export GOOGLE_APPLICATION_CREDENTIALS="./service-account.json"
-node scripts/provision-admin.js dr.suresh@sureshdental.clinic "Dr. R. Suresh"
+node scripts/provision-admin.js dr.suresh@drsureshdental.com "Dr. R. Suresh"
 
 # Option B: Interactive prompt
 node scripts/provision-admin.js

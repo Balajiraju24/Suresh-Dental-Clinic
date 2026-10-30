@@ -90,7 +90,7 @@ export function generateReceiptPDF(receipt: PaymentReceipt, invoice?: Invoice | 
   doc.text("No. 12, Bishop Garden, Raja Annamalaipuram (R.A. Puram), Chennai - 600 028, TN, India", margin, y);
 
   y += 4.5;
-  doc.text("Tel: +91 44 2493 8214, +91 98400 12345 | Email: clinic@sureshdental.clinic", margin, y);
+  doc.text("Tel: +91 44 2493 8214, +91 98400 12345 | Email: contact@drsureshdental.com", margin, y);
 
   // Divider
   y += 5;
