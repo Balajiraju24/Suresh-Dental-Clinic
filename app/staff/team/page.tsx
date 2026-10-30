@@ -11,6 +11,13 @@ import {
 } from "@/lib/data/data-service";
 import { StaffUser, StaffRole } from "@/types/portal";
 import { ROLE_METADATA } from "@/lib/auth/permissions";
+import { initializeApp, deleteApp } from "firebase/app";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+} from "firebase/auth";
+import { firebaseConfig, isFirebaseConfigured } from "@/lib/firebase/config";
 import {
   UserCog,
   Plus,
@@ -23,23 +30,50 @@ import {
   Lock,
   AlertCircle,
   UserCheck,
+  Copy,
+  Check,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  Send,
+  KeyRound,
+  ExternalLink,
 } from "lucide-react";
 
 export default function StaffTeamPage() {
-  const { currentUser, checkPermission } = useAuth();
+  const { currentUser, checkPermission, resetPassword } = useAuth();
 
   const [staffList, setStaffList] = useState<StaffUser[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // New staff modal
+  // New staff modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<StaffRole>("receptionist");
   const [phone, setPhone] = useState("");
   const [specialization, setSpecialization] = useState("");
+  const [password, setPassword] = useState("SureshClinic2026!");
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Created account modal state
+  const [createdAccountDetails, setCreatedAccountDetails] = useState<{
+    name: string;
+    email: string;
+    role: StaffRole;
+    password: string;
+    resetEmailSent: boolean;
+  } | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  // Row-level action status toast
+  const [actionStatus, setActionStatus] = useState<{
+    email: string;
+    message: string;
+    isError?: boolean;
+  } | null>(null);
 
   const loadData = useCallback(async () => {
     try {
@@ -55,6 +89,15 @@ export default function StaffTeamPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  const generateRandomPassword = () => {
+    const chars = "abcdefghjkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%";
+    let pwd = "DrSuresh#";
+    for (let i = 0; i < 4; i++) {
+      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setPassword(pwd);
+  };
 
   const handleToggleStatus = async (user: StaffUser) => {
     if (!currentUser) return;
@@ -91,6 +134,31 @@ export default function StaffTeamPage() {
     }
   };
 
+  const handleSendResetEmail = async (userEmail: string) => {
+    try {
+      const success = await resetPassword(userEmail);
+      if (success) {
+        setActionStatus({
+          email: userEmail,
+          message: `Password reset link dispatched to ${userEmail}. (Check inbox & spam folder)`,
+        });
+      } else {
+        setActionStatus({
+          email: userEmail,
+          message: `Could not send reset link. Ensure the account exists in Firebase Authentication.`,
+          isError: true,
+        });
+      }
+    } catch (err) {
+      setActionStatus({
+        email: userEmail,
+        message: err instanceof Error ? err.message : "Failed to send reset email.",
+        isError: true,
+      });
+    }
+    setTimeout(() => setActionStatus(null), 6000);
+  };
+
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUser) return;
@@ -106,6 +174,48 @@ export default function StaffTeamPage() {
         return;
       }
 
+      if (password.length < 6) {
+        setFormError("Password must be at least 6 characters.");
+        setSubmitting(false);
+        return;
+      }
+
+      let authUid: string | undefined;
+      let resetEmailSent = false;
+
+      // 1. Provision user in Firebase Authentication without logging out the current admin
+      if (isFirebaseConfigured()) {
+        const tempAppName = `staff-create-${Date.now()}`;
+        const tempApp = initializeApp(firebaseConfig, tempAppName);
+        try {
+          const tempAuth = getAuth(tempApp);
+          const cred = await createUserWithEmailAndPassword(tempAuth, cleanEmail, password);
+          authUid = cred.user.uid;
+
+          // Dispatch password reset email if mailbox is ready
+          try {
+            await sendPasswordResetEmail(tempAuth, cleanEmail);
+            resetEmailSent = true;
+          } catch (e) {
+            console.warn("sendPasswordResetEmail skipped or failed:", e);
+          }
+        } catch (authErr: unknown) {
+          const code = (authErr as { code?: string })?.code;
+          const msg = authErr instanceof Error ? authErr.message : "Authentication error";
+          if (code === "auth/email-already-in-use") {
+            // Already created in Firebase Auth, proceed to link Firestore profile
+            console.info("User already exists in Firebase Auth, linking clinic staff profile.");
+          } else {
+            throw new Error(msg);
+          }
+        } finally {
+          try {
+            await deleteApp(tempApp);
+          } catch {}
+        }
+      }
+
+      // 2. Create staff record in Firestore and local registry
       await createStaffMember(
         {
           email: cleanEmail,
@@ -119,20 +229,36 @@ export default function StaffTeamPage() {
           uid: currentUser.uid,
           displayName: currentUser.displayName,
           role: currentUser.role,
-        }
+        },
+        authUid
       );
 
-      setIsModalOpen(false);
-      setName("");
-      setEmail("");
-      setPhone("");
-      setSpecialization("");
+      // 3. Show credentials confirmation card to admin
+      setCreatedAccountDetails({
+        name: name.trim(),
+        email: cleanEmail,
+        role,
+        password,
+        resetEmailSent,
+      });
+
       await loadData();
     } catch (err: unknown) {
       setFormError(err instanceof Error ? err.message : "Failed to create staff account.");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setCreatedAccountDetails(null);
+    setName("");
+    setEmail("");
+    setPhone("");
+    setSpecialization("");
+    setPassword("SureshClinic2026!");
+    setFormError(null);
   };
 
   const canManageTeam = checkPermission("team:manage");
@@ -157,6 +283,7 @@ export default function StaffTeamPage() {
               onClick={() => {
                 setIsModalOpen(true);
                 setFormError(null);
+                setCreatedAccountDetails(null);
               }}
               className="inline-flex items-center gap-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold shadow-md shadow-sky-600/20 transition-all cursor-pointer"
             >
@@ -166,13 +293,40 @@ export default function StaffTeamPage() {
           )}
         </div>
 
+        {/* Action Status Toast */}
+        {actionStatus && (
+          <div
+            className={`p-3.5 rounded-xl border text-xs flex items-center justify-between gap-2 shadow-xs transition-all ${
+              actionStatus.isError
+                ? "bg-red-50 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-900"
+                : "bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-900"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              {actionStatus.isError ? (
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-500" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500" />
+              )}
+              <span>{actionStatus.message}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActionStatus(null)}
+              className="text-slate-400 hover:text-slate-600"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {/* Security Rule Banner */}
         <div className="p-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 flex items-start gap-3 text-xs text-sky-900 dark:text-sky-200">
           <ShieldCheck className="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
           <div className="space-y-1">
             <span className="font-bold">Privileged Administrative Provisioning Active</span>
             <p className="text-slate-600 dark:text-slate-400">
-              Unrestricted public staff registration is strictly disabled. New accounts are provisioned exclusively by authorized clinic administrators. Role permissions are enforced at the database security rule layer.
+              Unrestricted public staff registration is strictly disabled. New accounts are provisioned directly in Firebase Authentication by authorized clinic administrators. Role permissions are enforced at the database security rule layer.
             </p>
           </div>
         </div>
@@ -254,8 +408,8 @@ export default function StaffTeamPage() {
                       </div>
                     </div>
 
-                    {/* Status & Toggle */}
-                    <div className="flex items-center gap-3 self-end md:self-center">
+                    {/* Actions: Status & Reset Email */}
+                    <div className="flex items-center gap-2 self-end md:self-center flex-wrap">
                       <span
                         className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg border ${
                           user.isActive
@@ -277,17 +431,29 @@ export default function StaffTeamPage() {
                       </span>
 
                       {canManageTeam && !isSelf && (
-                        <button
-                          type="button"
-                          onClick={() => handleToggleStatus(user)}
-                          className={`text-xs px-3 py-1.5 rounded-lg border font-medium cursor-pointer transition-colors ${
-                            user.isActive
-                              ? "text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-950/30"
-                              : "text-emerald-700 border-emerald-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
-                          }`}
-                        >
-                          {user.isActive ? "Deactivate" : "Re-activate"}
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => handleSendResetEmail(user.email)}
+                            className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1.5 cursor-pointer"
+                            title="Dispatch password reset instructions to this email"
+                          >
+                            <Send className="w-3 h-3 text-sky-500" />
+                            <span>Send Reset Link</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleToggleStatus(user)}
+                            className={`text-xs px-2.5 py-1 rounded-lg border font-medium cursor-pointer transition-colors ${
+                              user.isActive
+                                ? "text-red-600 border-red-200 hover:bg-red-50 dark:hover:bg-red-950/30"
+                                : "text-emerald-700 border-emerald-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
+                            }`}
+                          >
+                            {user.isActive ? "Deactivate" : "Re-activate"}
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
@@ -304,7 +470,7 @@ export default function StaffTeamPage() {
               <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900 dark:text-white">
-                    Provision Staff Account
+                    {createdAccountDetails ? "Account Provisioned" : "Provision Staff Account"}
                   </h2>
                   <p className="text-xs text-slate-500">
                     Dr. R. Suresh Dental Clinic &bull; R.A. Puram, Chennai
@@ -312,115 +478,220 @@ export default function StaffTeamPage() {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-1 text-slate-400 hover:text-slate-600"
+                  onClick={handleCloseModal}
+                  className="p-1 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {formError && (
-                <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-300 flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{formError}</span>
-                </div>
-              )}
-
-              <form onSubmit={handleCreateSubmit} className="space-y-4">
-                <div>
-                  <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                    Staff Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Dr. K. Annamalai"
-                    className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Clinic Email Address *
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="staff@drsureshdental.com"
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
-                    />
+              {createdAccountDetails ? (
+                /* Success View with Direct Credentials */
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-emerald-900 dark:text-emerald-200 flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-bold text-sm">Staff Account Successfully Created!</h3>
+                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                        This user is registered in Firebase Authentication and granted immediate clinic access.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Assigned Role *
-                    </label>
-                    <select
-                      value={role}
-                      onChange={(e) => setRole(e.target.value as StaffRole)}
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
+
+                  <div className="bg-slate-50 dark:bg-slate-800/80 rounded-2xl p-4 border border-slate-200 dark:border-slate-700 space-y-2.5">
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-700">
+                      <span className="font-semibold text-slate-600 dark:text-slate-400">Staff Member:</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{createdAccountDetails.name}</span>
+                    </div>
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-700">
+                      <span className="font-semibold text-slate-600 dark:text-slate-400">Login Email:</span>
+                      <span className="font-mono font-medium text-slate-900 dark:text-white">{createdAccountDetails.email}</span>
+                    </div>
+                    <div className="flex items-center justify-between pb-2 border-b border-slate-200/60 dark:border-slate-700">
+                      <span className="font-semibold text-slate-600 dark:text-slate-400">Clinic Role:</span>
+                      <span className="font-semibold text-sky-700 dark:text-sky-300 capitalize">{createdAccountDetails.role}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-slate-600 dark:text-slate-400">Assigned Password:</span>
+                      <span className="font-mono font-bold text-slate-900 dark:text-white px-2.5 py-1 bg-slate-200 dark:bg-slate-700 rounded-lg text-sm select-all">
+                        {createdAccountDetails.password}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 rounded-xl text-amber-900 dark:text-amber-200 text-[11px] leading-relaxed">
+                    <strong>Direct Access Available:</strong> You can give the email and password above directly to the staff member so they can sign in immediately at <span className="font-mono">drsureshdental.com/staff/login</span>. They do not have to wait for an email to be delivered.
+                  </div>
+
+                  <div className="pt-2 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const text = `Dr. R. Suresh Dental Clinic - Staff Login\nPortal: https://drsureshdental.com/staff/login\nEmail: ${createdAccountDetails.email}\nInitial Password: ${createdAccountDetails.password}\nRole: ${createdAccountDetails.role}`;
+                        navigator.clipboard.writeText(text);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 3000);
+                      }}
+                      className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 rounded-xl font-semibold flex items-center gap-1.5 cursor-pointer"
                     >
-                      <option value="receptionist">Receptionist</option>
-                      <option value="dentist">Dentist / Surgeon</option>
-                      <option value="accounts">Accounts &amp; Billing</option>
-                      <option value="administrator">Administrator</option>
-                    </select>
+                      {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
+                      <span>{copied ? "Copied Credentials!" : "Copy Login Info"}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleCloseModal}
+                      className="px-5 py-2 font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-md cursor-pointer"
+                    >
+                      Done
+                    </button>
                   </div>
                 </div>
+              ) : (
+                /* Registration Form */
+                <>
+                  {formError && (
+                    <div className="mb-4 p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-xs text-red-700 dark:text-red-300 flex items-center gap-2">
+                      <AlertCircle className="w-4 h-4 shrink-0" />
+                      <span>{formError}</span>
+                    </div>
+                  )}
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Phone Number
-                    </label>
-                    <input
-                      type="tel"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+91 98400 99999"
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
-                    />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                      Clinical Specialization
-                    </label>
-                    <input
-                      type="text"
-                      value={specialization}
-                      onChange={(e) => setSpecialization(e.target.value)}
-                      placeholder="e.g. Endodontist, Dental Hygienist"
-                      className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
-                    />
-                  </div>
-                </div>
+                  <form onSubmit={handleCreateSubmit} className="space-y-4">
+                    <div>
+                      <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                        Staff Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g. Dr. K. Annamalai"
+                        className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
+                      />
+                    </div>
 
-                <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-500">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">Security Provisioning: </span>
-                  New staff member will receive an activation email to establish their secure password. Initial access is active immediately upon confirmation.
-                </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                          Clinic Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="staff@drsureshdental.com"
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                          Assigned Role *
+                        </label>
+                        <select
+                          value={role}
+                          onChange={(e) => setRole(e.target.value as StaffRole)}
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
+                        >
+                          <option value="receptionist">Receptionist</option>
+                          <option value="dentist">Dentist / Surgeon</option>
+                          <option value="accounts">Accounts &amp; Billing</option>
+                          <option value="administrator">Administrator</option>
+                        </select>
+                      </div>
+                    </div>
 
-                <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 text-slate-600 hover:text-slate-900 cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="px-5 py-2 font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-md cursor-pointer"
-                  >
-                    {submitting ? "Provisioning..." : "Provision Account"}
-                  </button>
-                </div>
-              </form>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                          Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          placeholder="+91 98400 99999"
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                          Clinical Specialization
+                        </label>
+                        <input
+                          type="text"
+                          value={specialization}
+                          onChange={(e) => setSpecialization(e.target.value)}
+                          placeholder="e.g. Endodontist, Dental Hygienist"
+                          className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Temporary Password Field */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block font-semibold text-slate-700 dark:text-slate-300">
+                          Initial Login Password *
+                        </label>
+                        <button
+                          type="button"
+                          onClick={generateRandomPassword}
+                          className="text-[11px] text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          <span>Generate Secure</span>
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          required
+                          minLength={6}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Min 6 characters"
+                          className="w-full pl-3 pr-10 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600 cursor-pointer"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1">
+                        The staff member can use this password to sign in immediately at /staff/login.
+                      </p>
+                    </div>
+
+                    <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-500">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300">Instant Access: </span>
+                      Account is provisioned directly in Firebase Authentication. You will receive a copyable credentials card upon completion.
+                    </div>
+
+                    <div className="pt-4 flex items-center justify-end gap-3 border-t border-slate-100 dark:border-slate-800">
+                      <button
+                        type="button"
+                        onClick={handleCloseModal}
+                        className="px-4 py-2 text-slate-600 hover:text-slate-900 cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={submitting}
+                        className="px-5 py-2 font-semibold bg-sky-600 hover:bg-sky-700 text-white rounded-xl shadow-md cursor-pointer disabled:opacity-50"
+                      >
+                        {submitting ? "Provisioning..." : "Provision Account"}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
             </div>
           </div>
         )}
@@ -428,4 +699,3 @@ export default function StaffTeamPage() {
     </StaffLayout>
   );
 }
-

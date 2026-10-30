@@ -11,7 +11,7 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { INITIAL_STAFF } from "../data/initial-data";
 
 interface AuthContextType {
@@ -69,6 +69,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 const staffDoc = await getDoc(doc(db, "staff", fbUser.uid));
                 if (staffDoc.exists()) {
                   staffData = staffDoc.data() as StaffUser;
+                } else if (fbUser.email) {
+                  const staffQuery = query(collection(db, "staff"), where("email", "==", fbUser.email.toLowerCase()));
+                  const querySnap = await getDocs(staffQuery);
+                  if (!querySnap.empty) {
+                    staffData = querySnap.docs[0].data() as StaffUser;
+                    staffData.uid = fbUser.uid;
+                    await setDoc(doc(db, "staff", fbUser.uid), staffData);
+                  }
                 }
               } catch (readErr) {
                 console.warn("Could not read staff doc from Firestore, falling back to local registry:", readErr);
@@ -177,6 +185,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return false;
               }
               userProfile = data;
+            } else {
+              // Check if staff was provisioned by email before first login
+              const staffQuery = query(collection(db, "staff"), where("email", "==", cleanEmail));
+              const querySnap = await getDocs(staffQuery);
+              if (!querySnap.empty) {
+                const matchedStaff = querySnap.docs[0].data() as StaffUser;
+                userProfile = { ...matchedStaff, uid: cred.user.uid };
+                await setDoc(doc(db, "staff", cred.user.uid), userProfile);
+              }
             }
           } catch (readErr) {
             console.warn("Could not read staff doc from Firestore, using registry fallback:", readErr);

@@ -859,25 +859,34 @@ export async function getStaffMembers(): Promise<StaffUser[]> {
 
 export async function createStaffMember(
   data: Omit<StaffUser, "uid" | "createdAt" | "updatedAt">,
-  actor: { uid: string; displayName: string; role: StaffRole }
+  actor: { uid: string; displayName: string; role: StaffRole },
+  customUid?: string
 ): Promise<StaffUser> {
   const newStaff: StaffUser = {
     ...data,
-    uid: `staff-${Date.now()}`,
+    uid: customUid || `staff-${Date.now()}`,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
 
   if (isFirebaseConfigured() && db) {
     try {
-      await setDoc(doc(db, "staff", newStaff.uid), newStaff);
+      const cleanStaff = sanitizeForFirestore(newStaff);
+      await withTimeout(setDoc(doc(db, "staff", newStaff.uid), cleanStaff), 3000);
     } catch (e) {
       console.warn("Firestore createStaffMember fallback:", e);
     }
   }
 
   const list = getLocalData<StaffUser>(STORAGE_KEYS.STAFF, INITIAL_STAFF);
-  list.push(newStaff);
+  const existingIdx = list.findIndex(
+    (s) => s.uid === newStaff.uid || s.email.toLowerCase() === newStaff.email.toLowerCase()
+  );
+  if (existingIdx >= 0) {
+    list[existingIdx] = newStaff;
+  } else {
+    list.push(newStaff);
+  }
   setLocalData(STORAGE_KEYS.STAFF, list);
 
   await logAuditEvent(actor, "staff.create", "staff", newStaff.uid, {
