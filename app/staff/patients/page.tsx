@@ -8,6 +8,7 @@ import {
   getPatients,
   createPatient,
   updatePatient,
+  deletePatient,
   addClinicalNote,
   getAppointments,
   getInvoices,
@@ -24,6 +25,7 @@ import {
   FileText,
   Calendar,
   CreditCard,
+  Trash2,
   X,
   Stethoscope,
   HeartPulse,
@@ -75,6 +77,10 @@ function PatientsContent() {
   const [notePrescription, setNotePrescription] = useState("");
   const [noteNextVisit, setNoteNextVisit] = useState("");
   const [noteSubmitting, setNoteSubmitting] = useState(false);
+
+  // Delete Patient Modal (Administrator Only)
+  const [patientToDelete, setPatientToDelete] = useState<Patient | null>(null);
+  const [isDeletingPatient, setIsDeletingPatient] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -241,6 +247,39 @@ function PatientsContent() {
   const canRegister = checkPermission("patients:create");
   const canAddClinicalNote = checkPermission("patients:clinical_notes");
   const canViewBilling = checkPermission("billing:view");
+  const canDeletePatient = checkPermission("patients:delete") || role === "administrator";
+
+  const handleDeletePatient = async () => {
+    if (!currentUser || !patientToDelete) return;
+    if (role !== "administrator") {
+      alert("Only clinic administrators are authorized to delete patient records.");
+      return;
+    }
+
+    setIsDeletingPatient(true);
+    try {
+      await deletePatient(patientToDelete.id, {
+        uid: currentUser.uid,
+        displayName: currentUser.displayName,
+        role: currentUser.role,
+      });
+
+      // Optimistically update patient and appointment state in UI
+      setPatients((prev) => prev.filter((p) => p.id !== patientToDelete.id));
+      setAppointments((prev) => prev.filter((a) => a.patientId !== patientToDelete.id));
+
+      if (selectedPatient?.id === patientToDelete.id) {
+        setSelectedPatient(null);
+      }
+
+      setPatientToDelete(null);
+    } catch (err) {
+      console.error("Delete patient error:", err);
+      alert(err instanceof Error ? err.message : "Failed to delete patient record.");
+    } finally {
+      setIsDeletingPatient(false);
+    }
+  };
 
   const formatINR = (amt: number) => {
     return new Intl.NumberFormat("en-IN", {
@@ -372,14 +411,28 @@ function PatientsContent() {
                       </p>
                     </div>
 
-                    {canViewBilling && selectedPatient.outstandingBalance > 0 && (
-                      <div className="text-right">
-                        <div className="text-xs text-slate-400">Balance Due</div>
-                        <div className="text-lg font-bold text-amber-600 dark:text-amber-400">
-                          {formatINR(selectedPatient.outstandingBalance)}
+                    <div className="flex items-center gap-3">
+                      {canViewBilling && selectedPatient.outstandingBalance > 0 && (
+                        <div className="text-right">
+                          <div className="text-xs text-slate-400">Balance Due</div>
+                          <div className="text-lg font-bold text-amber-600 dark:text-amber-400">
+                            {formatINR(selectedPatient.outstandingBalance)}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+
+                      {canDeletePatient && (
+                        <button
+                          type="button"
+                          onClick={() => setPatientToDelete(selectedPatient)}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900 rounded-xl text-xs font-semibold transition-colors cursor-pointer"
+                          title="Permanently Delete Patient Record (Administrator Only)"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          <span>Delete Record</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Demographics & Contact Grid */}
@@ -944,6 +997,73 @@ function PatientsContent() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+        {/* Delete Patient Confirmation Modal (Administrator Only) */}
+        {patientToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/60 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Delete Patient Record
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Administrator Authorization Required
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/50 rounded-xl p-3.5 space-y-1.5 text-xs text-rose-900 dark:text-rose-300">
+                <div className="font-semibold">
+                  {patientToDelete.firstName} {patientToDelete.lastName} ({patientToDelete.patientIdNumber})
+                </div>
+                <div className="text-rose-700 dark:text-rose-400">
+                  Phone: {patientToDelete.phoneNumber} &bull; Visits: {patientToDelete.totalVisits}
+                  {patientToDelete.outstandingBalance > 0 && (
+                    <> &bull; Outstanding Balance: {formatINR(patientToDelete.outstandingBalance)}</>
+                  )}
+                </div>
+                {patientToDelete.clinicalNotes && patientToDelete.clinicalNotes.length > 0 && (
+                  <div className="text-[11px] text-rose-600 dark:text-rose-400">
+                    Contains {patientToDelete.clinicalNotes.length} clinical treatment note(s).
+                  </div>
+                )}
+              </div>
+
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Are you sure you want to permanently delete this patient record? Associated appointments and clinical chart entries will be permanently removed. This action cannot be undone and will be recorded in the audit trail.
+              </p>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setPatientToDelete(null)}
+                  disabled={isDeletingPatient}
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeletePatient}
+                  disabled={isDeletingPatient}
+                  className="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+                >
+                  {isDeletingPatient ? (
+                    <span>Deleting...</span>
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Confirm Delete</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}

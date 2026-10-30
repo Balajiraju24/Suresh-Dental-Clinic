@@ -30,11 +30,13 @@ export type Permission =
   | "patients:create"
   | "patients:edit"
   | "patients:clinical_notes"
+  | "patients:delete"
   // Billing
   | "billing:view"
   | "billing:create"
   | "billing:record_payment"
   | "billing:reports"
+  | "billing:delete"
   // Services
   | "services:view"
   | "services:manage"

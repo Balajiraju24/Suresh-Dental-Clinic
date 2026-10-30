@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth/AuthContext";
 import {
   getInvoices,
   createInvoice,
+  deleteInvoice,
   getPayments,
   recordPayment,
   getPatients,
@@ -21,6 +22,7 @@ import {
   Clock,
   Printer,
   Download,
+  Trash2,
   X,
   Building,
   User,
@@ -73,6 +75,10 @@ export default function StaffBillingPage() {
   // View / Print Receipt Modal
   const [selectedReceipt, setSelectedReceipt] = useState<PaymentReceipt | null>(null);
   const [selectedInvoiceForPrint, setSelectedInvoiceForPrint] = useState<Invoice | null>(null);
+
+  // Delete Invoice Modal (Administrator Only)
+  const [invoiceToDelete, setInvoiceToDelete] = useState<Invoice | null>(null);
+  const [isDeletingInvoice, setIsDeletingInvoice] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -361,6 +367,47 @@ export default function StaffBillingPage() {
 
   const canCreateInvoice = checkPermission("billing:create");
   const canRecordPayment = checkPermission("billing:record_payment");
+  const canDeleteInvoice = checkPermission("billing:delete") || currentUser?.role === "administrator";
+
+  const handleDeleteInvoice = async () => {
+    if (!currentUser || !invoiceToDelete) return;
+    if (currentUser.role !== "administrator") {
+      alert("Only clinic administrators are authorized to delete invoices.");
+      return;
+    }
+
+    setIsDeletingInvoice(true);
+    try {
+      await deleteInvoice(invoiceToDelete.id, {
+        uid: currentUser.uid,
+        displayName: currentUser.displayName,
+        role: currentUser.role,
+      });
+
+      // Optimistically update invoice list in UI
+      setInvoices((prev) => prev.filter((i) => i.id !== invoiceToDelete.id));
+
+      // Reconcile patient balance locally if balance was outstanding
+      if (invoiceToDelete.balanceAmount > 0) {
+        setPatients((prev) =>
+          prev.map((p) => {
+            if (p.id === invoiceToDelete.patientId) {
+              const newBal = Math.max(0, (p.outstandingBalance || 0) - invoiceToDelete.balanceAmount);
+              return { ...p, outstandingBalance: newBal };
+            }
+            return p;
+          })
+        );
+      }
+
+      setInvoiceToDelete(null);
+    } catch (err) {
+      console.error("Delete invoice error:", err);
+      alert(err instanceof Error ? err.message : "Failed to delete invoice.");
+    } finally {
+      setIsDeletingInvoice(false);
+    }
+  };
 
   return (
     <StaffLayout requiredPermissions={["billing:view"]}>
@@ -567,6 +614,18 @@ export default function StaffBillingPage() {
                       >
                         <Download className="w-4 h-4" />
                       </button>
+
+                      {/* Administrator Only: Delete Invoice Button */}
+                      {canDeleteInvoice && (
+                        <button
+                          type="button"
+                          onClick={() => setInvoiceToDelete(inv)}
+                          className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                          title="Delete Invoice (Administrator Only)"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -1187,6 +1246,73 @@ export default function StaffBillingPage() {
                     <span>Print A4 Bill (Laser)</span>
                   </button>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Delete Invoice Confirmation Modal (Administrator Only) */}
+        {invoiceToDelete && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-950/60 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    Delete Dental Invoice
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Administrator Authorization Required
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900/50 rounded-xl p-3.5 space-y-1.5 text-xs text-rose-900 dark:text-rose-300">
+                <div className="font-semibold">
+                  Invoice #{invoiceToDelete.invoiceNumber} &bull; {invoiceToDelete.patientName}
+                </div>
+                <div className="text-rose-700 dark:text-rose-400">
+                  Total Bill: {formatINR(invoiceToDelete.totalAmount)}
+                  {invoiceToDelete.balanceAmount > 0 && (
+                    <> &bull; Unpaid Balance: {formatINR(invoiceToDelete.balanceAmount)}</>
+                  )}
+                </div>
+                {invoiceToDelete.balanceAmount > 0 && (
+                  <p className="text-[11px] text-rose-600 dark:text-rose-400 mt-1">
+                    Deleting this invoice will automatically deduct {formatINR(invoiceToDelete.balanceAmount)} from the patient&apos;s outstanding clinic balance.
+                  </p>
+                )}
+              </div>
+
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Are you sure you want to permanently delete this invoice? This action cannot be undone and will be permanently recorded in the audit trail.
+              </p>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setInvoiceToDelete(null)}
+                  disabled={isDeletingInvoice}
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteInvoice}
+                  disabled={isDeletingInvoice}
+                  className="px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-700 text-white rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-1.5"
+                >
+                  {isDeletingInvoice ? (
+                    <span>Deleting...</span>
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Confirm Delete</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>

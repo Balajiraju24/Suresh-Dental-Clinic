@@ -14,6 +14,8 @@ describe("Role-Based Access Control (RBAC) Matrix", () => {
     assert.equal(hasPermission("administrator", "team:manage"), true);
     assert.equal(hasPermission("administrator", "settings:manage"), true);
     assert.equal(hasPermission("administrator", "audit:view"), true);
+    assert.equal(hasPermission("administrator", "patients:delete"), true);
+    assert.equal(hasPermission("administrator", "billing:delete"), true);
   });
 
   it("Receptionist permissions conform strictly to front desk requirements", () => {
@@ -27,6 +29,8 @@ describe("Role-Based Access Control (RBAC) Matrix", () => {
 
     // Strictly Denied
     assert.equal(hasPermission("receptionist", "patients:clinical_notes"), false);
+    assert.equal(hasPermission("receptionist", "patients:delete"), false);
+    assert.equal(hasPermission("receptionist", "billing:delete"), false);
     assert.equal(hasPermission("receptionist", "team:manage"), false);
     assert.equal(hasPermission("receptionist", "settings:manage"), false);
     assert.equal(hasPermission("receptionist", "audit:view"), false);
@@ -42,6 +46,8 @@ describe("Role-Based Access Control (RBAC) Matrix", () => {
     assert.equal(hasPermission("dentist", "billing:view"), true);
 
     // Strictly Denied
+    assert.equal(hasPermission("dentist", "patients:delete"), false);
+    assert.equal(hasPermission("dentist", "billing:delete"), false);
     assert.equal(hasPermission("dentist", "billing:create"), false);
     assert.equal(hasPermission("dentist", "billing:record_payment"), false);
     assert.equal(hasPermission("dentist", "team:manage"), false);
@@ -58,6 +64,8 @@ describe("Role-Based Access Control (RBAC) Matrix", () => {
     assert.equal(hasPermission("accounts", "appointments:view"), true);
 
     // Strictly Denied
+    assert.equal(hasPermission("accounts", "patients:delete"), false);
+    assert.equal(hasPermission("accounts", "billing:delete"), false);
     assert.equal(hasPermission("accounts", "patients:clinical_notes"), false);
     assert.equal(hasPermission("accounts", "patients:create"), false);
     assert.equal(hasPermission("accounts", "team:manage"), false);

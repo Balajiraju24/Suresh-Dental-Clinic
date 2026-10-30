@@ -33,6 +33,7 @@ import {
   doc,
   setDoc,
   updateDoc,
+  deleteDoc,
   query,
   orderBy,
   limit,
@@ -359,6 +360,63 @@ export async function updatePatient(
   });
 }
 
+export async function deletePatient(
+  patientId: string,
+  actor: { uid: string; displayName: string; role: StaffRole }
+): Promise<void> {
+  if (actor.role !== "administrator") {
+    throw new Error("Unauthorized: Only clinic administrators can delete patient records.");
+  }
+
+  const patients = getLocalData<Patient>(STORAGE_KEYS.PATIENTS, INITIAL_PATIENTS);
+  const targetPatient = patients.find((p) => p.id === patientId);
+  if (!targetPatient) {
+    throw new Error("Patient record not found.");
+  }
+
+  // 1. Remove patient from local storage
+  const updatedPatients = patients.filter((p) => p.id !== patientId);
+  setLocalData(STORAGE_KEYS.PATIENTS, updatedPatients);
+
+  // 2. Clean associated appointments from local storage
+  const appointments = getLocalData<Appointment>(STORAGE_KEYS.APPOINTMENTS, INITIAL_APPOINTMENTS);
+  const updatedAppointments = appointments.filter((a) => a.patientId !== patientId);
+  setLocalData(STORAGE_KEYS.APPOINTMENTS, updatedAppointments);
+
+  // 3. Record audit log
+  const auditLogs = getLocalData<AuditLog>(STORAGE_KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS);
+  const auditEntry: AuditLog = {
+    id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    timestamp: new Date().toISOString(),
+    actorUid: actor.uid,
+    actorName: actor.displayName,
+    actorRole: actor.role,
+    action: "patient.delete",
+    resourceType: "patient",
+    resourceId: targetPatient.id,
+    details: {
+      patientIdNumber: targetPatient.patientIdNumber,
+      patientName: `${targetPatient.firstName} ${targetPatient.lastName}`,
+      phoneNumber: targetPatient.phoneNumber,
+    },
+  };
+  auditLogs.unshift(auditEntry);
+  setLocalData(STORAGE_KEYS.AUDIT_LOGS, auditLogs.slice(0, 500));
+
+  // 4. Non-blocking parallel background sync to Firestore
+  if (isFirebaseConfigured() && db) {
+    try {
+      const cleanAudit = sanitizeForFirestore(auditEntry);
+      Promise.allSettled([
+        withTimeout(deleteDoc(doc(db, "patients", patientId)), 3000),
+        withTimeout(setDoc(doc(db, "audit_logs", auditEntry.id), cleanAudit), 3000),
+      ]).catch((err) => console.warn("Firestore background patient delete note:", err));
+    } catch (err) {
+      console.warn("Firestore background patient delete dispatch note:", err);
+    }
+  }
+}
+
 export async function addClinicalNote(
   patientId: string,
   noteData: Omit<ClinicalNote, "id" | "createdAt">,
@@ -577,6 +635,80 @@ export async function createInvoice(
   }
 
   return newInvoice;
+}
+
+export async function deleteInvoice(
+  invoiceId: string,
+  actor: { uid: string; displayName: string; role: StaffRole }
+): Promise<void> {
+  if (actor.role !== "administrator") {
+    throw new Error("Unauthorized: Only clinic administrators can delete invoices.");
+  }
+
+  const invoicesList = getLocalData<Invoice>(STORAGE_KEYS.INVOICES, INITIAL_INVOICES);
+  const targetInvoice = invoicesList.find((i) => i.id === invoiceId);
+  if (!targetInvoice) {
+    throw new Error("Invoice record not found.");
+  }
+
+  // 1. Remove invoice from local storage
+  const updatedInvoices = invoicesList.filter((i) => i.id !== invoiceId);
+  setLocalData(STORAGE_KEYS.INVOICES, updatedInvoices);
+
+  // 2. Adjust patient balance if there was an unpaid balance on this invoice
+  const patients = getLocalData<Patient>(STORAGE_KEYS.PATIENTS, INITIAL_PATIENTS);
+  const targetPatient = patients.find((p) => p.id === targetInvoice.patientId);
+  let newPatientBalance: number | null = null;
+  if (targetPatient && targetInvoice.balanceAmount > 0) {
+    newPatientBalance = Math.max(0, (targetPatient.outstandingBalance || 0) - targetInvoice.balanceAmount);
+    const updatedPatients = patients.map((p) =>
+      p.id === targetPatient.id ? { ...p, outstandingBalance: newPatientBalance as number, updatedAt: new Date().toISOString() } : p
+    );
+    setLocalData(STORAGE_KEYS.PATIENTS, updatedPatients);
+  }
+
+  // 3. Record audit log
+  const auditLogs = getLocalData<AuditLog>(STORAGE_KEYS.AUDIT_LOGS, INITIAL_AUDIT_LOGS);
+  const auditEntry: AuditLog = {
+    id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    timestamp: new Date().toISOString(),
+    actorUid: actor.uid,
+    actorName: actor.displayName,
+    actorRole: actor.role,
+    action: "invoice.delete",
+    resourceType: "invoice",
+    resourceId: targetInvoice.id,
+    details: {
+      invoiceNumber: targetInvoice.invoiceNumber,
+      patientName: targetInvoice.patientName,
+      totalAmount: targetInvoice.totalAmount,
+      balanceAdjusted: targetInvoice.balanceAmount,
+    },
+  };
+  auditLogs.unshift(auditEntry);
+  setLocalData(STORAGE_KEYS.AUDIT_LOGS, auditLogs.slice(0, 500));
+
+  // 4. Non-blocking parallel background sync to Firestore
+  if (isFirebaseConfigured() && db) {
+    try {
+      const cleanAudit = sanitizeForFirestore(auditEntry);
+      Promise.allSettled([
+        withTimeout(deleteDoc(doc(db, "invoices", invoiceId)), 3000),
+        targetPatient && newPatientBalance !== null
+          ? withTimeout(
+              updateDoc(doc(db, "patients", targetPatient.id), {
+                outstandingBalance: newPatientBalance,
+                updatedAt: new Date().toISOString(),
+              }),
+              3000
+            )
+          : Promise.resolve(),
+        withTimeout(setDoc(doc(db, "audit_logs", auditEntry.id), cleanAudit), 3000),
+      ]).catch((err) => console.warn("Firestore background invoice delete note:", err));
+    } catch (err) {
+      console.warn("Firestore background invoice delete dispatch note:", err);
+    }
+  }
 }
 
 // ==========================================

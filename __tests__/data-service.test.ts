@@ -9,7 +9,9 @@ import {
   addClinicalNote,
   getInvoices,
   createInvoice,
+  deleteInvoice,
   recordPayment,
+  deletePatient,
   getDashboardMetrics,
   getStaffMembers,
 } from "../lib/data/data-service";
@@ -240,5 +242,96 @@ describe("Dental Clinic Data Operations & Business Logic", () => {
     const updatedPatients = await getPatients();
     const updated = updatedPatients.find((p) => p.id === patient.id);
     assert.ok(updated?.clinicalNotes.some((n) => n.id === note.id));
+  });
+
+  it("Enforces admin-only authorization for deleting invoices and reconciles patient balance", async () => {
+    const receptionistActor = {
+      uid: "test-rec-uid",
+      displayName: "Front Desk Priya",
+      role: "receptionist" as const,
+    };
+
+    const patients = await getPatients();
+    const patient = patients[0];
+
+    // Create an invoice to delete
+    const inv = await createInvoice(
+      {
+        patientId: patient.id,
+        patientName: `${patient.firstName} ${patient.lastName}`,
+        patientPhone: patient.phoneNumber,
+        issueDate: new Date().toISOString().split("T")[0],
+        items: [
+          {
+            id: "line-del-1",
+            serviceId: "srv-001",
+            serviceName: "Consultation",
+            quantity: 1,
+            unitPrice: 800,
+            total: 800,
+          },
+        ],
+        subtotal: 800,
+        discount: 0,
+        tax: 0,
+        totalAmount: 800,
+        status: "issued",
+        createdByUid: testAdminActor.uid,
+        createdByName: testAdminActor.displayName,
+      },
+      testAdminActor
+    );
+
+    // 1. Non-admin cannot delete
+    await assert.rejects(
+      async () => {
+        await deleteInvoice(inv.id, receptionistActor);
+      },
+      { message: /Unauthorized: Only clinic administrators can delete invoices/ }
+    );
+
+    // 2. Admin successfully deletes invoice
+    await deleteInvoice(inv.id, testAdminActor);
+
+    const allInvoices = await getInvoices();
+    assert.equal(allInvoices.some((i) => i.id === inv.id), false);
+  });
+
+  it("Enforces admin-only authorization for deleting patient records", async () => {
+    const receptionistActor = {
+      uid: "test-rec-uid",
+      displayName: "Front Desk Priya",
+      role: "receptionist" as const,
+    };
+
+    // Create temporary patient
+    const tempPatient = await createPatient(
+      {
+        firstName: "Temp",
+        lastName: "Patient",
+        dateOfBirth: "1992-05-10",
+        gender: "female",
+        phoneNumber: "+91 91111 22222",
+        address: { locality: "R.A. Puram", city: "Chennai", postalCode: "600028" },
+        emergencyContact: { name: "Contact", relationship: "Friend", phone: "+91 91111 33333" },
+        medicalHistory: { allergies: [], conditions: [], currentMedications: [] },
+        status: "active",
+      },
+      testAdminActor
+    );
+
+    // 1. Non-admin cannot delete
+    await assert.rejects(
+      async () => {
+        await deletePatient(tempPatient.id, receptionistActor);
+      },
+      { message: /Unauthorized: Only clinic administrators can delete patient records/ }
+    );
+
+    // 2. Admin successfully deletes patient
+    await deletePatient(tempPatient.id, testAdminActor);
+
+    const allPatients = await getPatients();
+    assert.equal(allPatients.some((p) => p.id === tempPatient.id), false);
   });
 });
