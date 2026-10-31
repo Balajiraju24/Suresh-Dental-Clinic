@@ -227,7 +227,7 @@ function StaffLoginForm() {
                 className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all"
               >
                 <div className="font-semibold text-blue-700 dark:text-blue-400">Receptionist</div>
-                <div className="text-[10px] text-slate-500 truncate">Kavitha Raman</div>
+                <div className="text-[10px] text-slate-500 truncate">Front Desk Reception</div>
               </button>
 
               <button
@@ -241,11 +241,11 @@ function StaffLoginForm() {
 
               <button
                 type="button"
-                onClick={() => handleQuickDemoFill("accounts@drsureshdental.com")}
-                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 transition-all"
+                onClick={() => handleQuickDemoFill("admin@balajirajumohan.com.au")}
+                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-sky-400 hover:bg-sky-50/50 dark:hover:bg-sky-950/20 transition-all"
               >
-                <div className="font-semibold text-emerald-700 dark:text-emerald-400">Accounts</div>
-                <div className="text-[10px] text-slate-500 truncate">Senthil Nathan</div>
+                <div className="font-semibold text-sky-700 dark:text-sky-400">Developer &amp; Admin</div>
+                <div className="text-[10px] text-slate-500 truncate">Balaji Raju Mohan</div>
               </button>
             </div>
           </div>

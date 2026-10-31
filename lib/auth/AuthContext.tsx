@@ -108,33 +108,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               if (auth) await firebaseSignOut(auth);
               setCurrentUser(null);
             } else {
-              // Fallback match by email in initial staff or resolve role securely
+              // Match by email in initial staff or known clinic administrators
               const match = findInitialStaffByEmail(fbUser.email);
-              const defaultRole: StaffRole = isKnownAdmin(fbUser.email) ? "administrator" : "receptionist";
-              const resolvedUser: StaffUser = match
-                ? { ...match, uid: fbUser.uid }
-                : {
-                    uid: fbUser.uid,
-                    email: fbUser.email || "staff@drsureshdental.com",
-                    displayName: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0].toUpperCase() : "Staff Member"),
-                    role: defaultRole,
-                    isActive: true,
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                  };
+              const isAdmin = isKnownAdmin(fbUser.email);
 
-              setCurrentUser(resolvedUser);
-              try {
-                localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(resolvedUser));
-              } catch {}
+              if (match || isAdmin) {
+                const resolvedUser: StaffUser = match
+                  ? { ...match, uid: fbUser.uid }
+                  : {
+                      uid: fbUser.uid,
+                      email: fbUser.email || "admin@balajirajumohan.com.au",
+                      displayName: fbUser.displayName || (fbUser.email ? fbUser.email.split("@")[0].toUpperCase() : "Administrator"),
+                      role: "administrator",
+                      isActive: true,
+                      createdAt: new Date().toISOString(),
+                      updatedAt: new Date().toISOString(),
+                    };
 
-              // Auto-seed to Firestore if missing
-              if (db) {
+                setCurrentUser(resolvedUser);
                 try {
-                  await setDoc(doc(db, "staff", fbUser.uid), resolvedUser);
-                } catch (seedErr) {
-                  console.warn("Auto-seed staff doc skipped:", seedErr);
+                  localStorage.setItem(LOCAL_SESSION_KEY, JSON.stringify(resolvedUser));
+                } catch {}
+
+                // Save official seed profile to Firestore
+                if (db) {
+                  try {
+                    await setDoc(doc(db, "staff", fbUser.uid), resolvedUser);
+                  } catch (seedErr) {
+                    console.warn("Auto-seed staff doc skipped:", seedErr);
+                  }
                 }
+              } else {
+                // Strictly deny unregistered test or personal accounts without admin invitation
+                setError("This account is not registered in the clinic staff roster. Please contact a clinic administrator.");
+                if (auth) await firebaseSignOut(auth);
+                setCurrentUser(null);
+                try {
+                  localStorage.removeItem(LOCAL_SESSION_KEY);
+                } catch {}
               }
             }
           } catch (err) {
@@ -218,25 +229,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (!userProfile) {
           const match = findInitialStaffByEmail(cleanEmail);
-          const defaultRole: StaffRole = isKnownAdmin(cleanEmail) ? "administrator" : "receptionist";
-          userProfile = match
-            ? { ...match, uid: cred.user.uid }
-            : {
-                uid: cred.user.uid,
-                email: cleanEmail,
-                displayName: cred.user.displayName || cleanEmail.split("@")[0].toUpperCase(),
-                role: defaultRole,
-                isActive: true,
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-              };
+          const isAdmin = isKnownAdmin(cleanEmail);
 
-          if (db) {
-            try {
-              await setDoc(doc(db, "staff", cred.user.uid), userProfile);
-            } catch (seedErr) {
-              console.warn("Auto-seed staff doc skipped:", seedErr);
+          if (match || isAdmin) {
+            userProfile = match
+              ? { ...match, uid: cred.user.uid }
+              : {
+                  uid: cred.user.uid,
+                  email: cleanEmail,
+                  displayName: cred.user.displayName || (cleanEmail ? cleanEmail.split("@")[0].toUpperCase() : "Administrator"),
+                  role: "administrator",
+                  isActive: true,
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                };
+
+            if (db) {
+              try {
+                await setDoc(doc(db, "staff", cred.user.uid), userProfile);
+              } catch (seedErr) {
+                console.warn("Auto-seed staff doc skipped:", seedErr);
+              }
             }
+          } else {
+            // Strictly reject unknown accounts not yet added by an administrator
+            setError("This account is not authorized as clinic staff. Please ask an administrator to add your email in Staff & Team.");
+            if (auth) await firebaseSignOut(auth);
+            setIsLoading(false);
+            return false;
           }
         }
 

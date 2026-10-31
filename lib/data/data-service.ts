@@ -848,7 +848,9 @@ export async function getStaffMembers(): Promise<StaffUser[]> {
       const q = query(collection(db, "staff"), orderBy("createdAt", "asc"));
       const snap = await withTimeout(getDocs(q), 2500);
       if (!snap.empty) {
-        return snap.docs.map((d) => d.data() as StaffUser);
+        const staff = snap.docs.map((d) => d.data() as StaffUser);
+        setLocalData(STORAGE_KEYS.STAFF, staff);
+        return staff;
       }
     } catch (e) {
       console.warn("Firestore getStaffMembers fallback:", e);
@@ -947,6 +949,34 @@ export async function updateStaffRole(
 
   await logAuditEvent(actor, "staff.role_change", "staff", uid, {
     newRole,
+  });
+}
+
+export async function deleteStaffMember(
+  targetUid: string,
+  actor: { uid: string; displayName: string; role: StaffRole }
+): Promise<void> {
+  if (actor.role !== "administrator") {
+    throw new Error("Unauthorized: Only clinic administrators can delete staff members.");
+  }
+  if (targetUid === actor.uid) {
+    throw new Error("Security violation: You cannot delete your own active administrator account.");
+  }
+
+  if (isFirebaseConfigured() && db) {
+    try {
+      await withTimeout(deleteDoc(doc(db, "staff", targetUid)), 3000);
+    } catch (e) {
+      console.warn("Firestore deleteStaffMember fallback:", e);
+    }
+  }
+
+  const list = getLocalData<StaffUser>(STORAGE_KEYS.STAFF, INITIAL_STAFF);
+  const updated = list.filter((s) => s.uid !== targetUid);
+  setLocalData(STORAGE_KEYS.STAFF, updated);
+
+  await logAuditEvent(actor, "staff.delete", "staff", targetUid, {
+    deletedUid: targetUid,
   });
 }
 

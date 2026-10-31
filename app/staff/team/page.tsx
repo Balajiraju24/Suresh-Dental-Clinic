@@ -8,6 +8,7 @@ import {
   createStaffMember,
   updateStaffStatus,
   updateStaffRole,
+  deleteStaffMember,
 } from "@/lib/data/data-service";
 import { StaffUser, StaffRole } from "@/types/portal";
 import { ROLE_METADATA } from "@/lib/auth/permissions";
@@ -38,6 +39,7 @@ import {
   Send,
   KeyRound,
   ExternalLink,
+  Trash2,
 } from "lucide-react";
 
 export default function StaffTeamPage() {
@@ -45,6 +47,10 @@ export default function StaffTeamPage() {
 
   const [staffList, setStaffList] = useState<StaffUser[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Staff deletion state
+  const [staffToDelete, setStaffToDelete] = useState<StaffUser | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // New staff modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -261,6 +267,33 @@ export default function StaffTeamPage() {
     setFormError(null);
   };
 
+  const handleDeleteStaff = async () => {
+    if (!staffToDelete || !currentUser) return;
+    setDeleting(true);
+    try {
+      await deleteStaffMember(staffToDelete.uid, {
+        uid: currentUser.uid,
+        displayName: currentUser.displayName,
+        role: currentUser.role,
+      });
+      setActionStatus({
+        email: staffToDelete.email,
+        message: `Successfully removed ${staffToDelete.displayName} (${staffToDelete.email}) from staff records.`,
+      });
+      setStaffToDelete(null);
+      await loadData();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to delete staff member.";
+      setActionStatus({
+        email: staffToDelete.email,
+        message: msg,
+        isError: true,
+      });
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const canManageTeam = checkPermission("team:manage");
 
   return (
@@ -452,6 +485,16 @@ export default function StaffTeamPage() {
                             }`}
                           >
                             {user.isActive ? "Deactivate" : "Re-activate"}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setStaffToDelete(user)}
+                            className="text-xs px-2.5 py-1 rounded-lg border border-red-200 dark:border-red-900/60 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 font-medium cursor-pointer transition-colors flex items-center gap-1"
+                            title="Permanently remove staff record"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Delete</span>
                           </button>
                         </>
                       )}
@@ -692,6 +735,69 @@ export default function StaffTeamPage() {
                   </form>
                 </>
               )}
+            </div>
+          </div>
+        )}
+        {/* Modal: Delete Staff Member Confirmation */}
+        {staffToDelete && (
+          <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 text-xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2 text-red-600 dark:text-red-400 font-bold text-sm">
+                  <AlertCircle className="w-5 h-5 shrink-0" />
+                  <span>Delete Staff Record</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setStaffToDelete(null)}
+                  className="text-slate-400 hover:text-slate-600 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-100 dark:border-red-900/50 space-y-2">
+                <p className="font-semibold text-slate-800 dark:text-slate-200">
+                  Are you sure you want to remove this staff profile?
+                </p>
+                <div className="space-y-1 text-slate-600 dark:text-slate-300">
+                  <div>
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">Name:</span>{" "}
+                    {staffToDelete.displayName}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">Email:</span>{" "}
+                    {staffToDelete.email}
+                  </div>
+                  <div>
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">Role:</span>{" "}
+                    <span className="capitalize">{staffToDelete.role}</span>
+                  </div>
+                </div>
+                <p className="text-[11px] text-red-600 dark:text-red-400 pt-1">
+                  This profile will be permanently removed from the staff directory and database. This action cannot be undone.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setStaffToDelete(null)}
+                  disabled={deleting}
+                  className="px-4 py-2 rounded-xl text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white cursor-pointer font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDeleteStaff}
+                  disabled={deleting}
+                  className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold cursor-pointer shadow-md disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{deleting ? "Deleting..." : "Confirm Delete"}</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
