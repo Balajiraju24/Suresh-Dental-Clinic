@@ -55,13 +55,6 @@ function StaffLoginForm() {
     }
   };
 
-  const handleQuickDemoFill = (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword("Chennai@2026");
-    clearError();
-    setResetSuccessMessage(null);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-950 to-sky-950 flex flex-col justify-between p-4 sm:p-6 lg:p-8">
       {/* Top bar with back to site and theme */}
@@ -203,52 +196,6 @@ function StaffLoginForm() {
               </button>
             )}
           </form>
-
-          {/* Demo Quick-Fill Roles for testing */}
-          <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
-            <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2.5 text-center">
-              Quick Role Test Fill (Demo Credentials)
-            </div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => handleQuickDemoFill("dr.suresh@drsureshdental.com")}
-                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-purple-400 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-all"
-              >
-                <div className="font-semibold text-purple-700 dark:text-purple-400">
-                  Administrator
-                </div>
-                <div className="text-[10px] text-slate-500 truncate">Dr. R. Suresh</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemoFill("reception@drsureshdental.com")}
-                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 transition-all"
-              >
-                <div className="font-semibold text-blue-700 dark:text-blue-400">Receptionist</div>
-                <div className="text-[10px] text-slate-500 truncate">Front Desk Reception</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemoFill("dr.ashritha@drsureshdental.com")}
-                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-purple-400 hover:bg-purple-50/50 dark:hover:bg-purple-950/20 transition-all"
-              >
-                <div className="font-semibold text-purple-700 dark:text-purple-400">Administrator</div>
-                <div className="text-[10px] text-slate-500 truncate">Dr. Ashritha Suresh</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickDemoFill("admin@balajirajumohan.com.au")}
-                className="p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-left hover:border-sky-400 hover:bg-sky-50/50 dark:hover:bg-sky-950/20 transition-all"
-              >
-                <div className="font-semibold text-sky-700 dark:text-sky-400">Developer &amp; Admin</div>
-                <div className="text-[10px] text-slate-500 truncate">Balaji Raju Mohan</div>
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Security Notice */}
